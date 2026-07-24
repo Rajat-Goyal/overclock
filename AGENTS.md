@@ -18,6 +18,8 @@ Use any skill on its own — they compose but are **not** a rigid pipeline.
 - **`skills/spike/SKILL.md`** — turn a chosen spike + scope into a concrete `spike.md`;
   delegates the questions to the external `grill-me` skill (Matt Pocock's) and asks where
   the file goes.
+- **`skills/slice/SKILL.md`** — turn a de-risked `product.md` into **candidate vertical
+  slices** shaped by Shape Up, and recommend the first bet. The chosen slice feeds decompose.
 - **`skills/squad-decompose/SKILL.md`** — turn settled scope into a DAG of right-sized,
   independently verifiable **stories** (`user-story.json`), then STOP for approval.
 - **`skills/squad-execute/SKILL.md`** — execute the backlog one story at a time behind
@@ -39,6 +41,14 @@ turn the known-unknowns into **candidate** spikes (small, time-boxed, throwaway;
 with concrete options). The builder picks which to run; the `spike` skill grills for the
 minimum viable decisions (via the external `grill-me` skill) and writes a `spike.md`. A
 resolved spike is a known-known — it feeds decomposition.
+
+## Phase 0.5 — shape the slice (Shape Up)
+
+Once the scary unknowns are de-risked (shaped work must be *solved*), read `product.md` and
+propose **candidate vertical slices** — each a compact Shape Up pitch (problem, appetite,
+solution, rabbit holes, no-gos) that ships a meaningful end-to-end result. Recommend the
+first bet; the builder chooses. Only the next bet is shaped and committed; the rest stay
+options. The chosen slice's Included/No-gos/appetite become the scope for decompose.
 
 ## Phase 1 — decompose (then STOP)
 

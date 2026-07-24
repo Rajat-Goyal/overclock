@@ -11,15 +11,16 @@ a runnable check *proved* it — measured, not suspected.
 
 ## The skills
 
-Four focused skills. **Use any one on its own** — they are not a rigid pipeline. They do
-compose, though: a common path is derisk → pick a spike → `spike.md` → decompose →
-execute, with every step optional.
+Five focused skills. **Use any one on its own** — they are not a rigid pipeline. They do
+compose, though: a common path is derisk → spike → **slice** → decompose → execute, with
+every step optional.
 
 | Skill | You have… | You get… |
 | --- | --- | --- |
 | **`derisk`** | a `product.md` or a pile of concerns | a Rumsfeld-matrix map + prioritized **candidate spikes** |
 | **`spike`** | a chosen candidate + rough scope | a concrete **`spike.md`**, grilled for the minimum viable decisions |
-| **`squad-decompose`** | settled scope | a DAG of right-sized, verifiable **stories** (`user-story.json`), then a STOP |
+| **`slice`** | a de-risked `product.md` | **candidate vertical slices** shaped by Shape Up + a recommended first bet |
+| **`squad-decompose`** | a chosen slice / settled scope | a DAG of right-sized, verifiable **stories** (`user-story.json`), then a STOP |
 | **`squad-execute`** | an approved backlog | the stories built by a squad, each behind an **evidence gate**, logged to `progress.json` |
 
 `spike` delegates its questioning to **`grill-me`** (Matt Pocock's skill) when it's
@@ -93,7 +94,12 @@ skills/
 │   ├── SKILL.md
 │   ├── templates/spike.template.md
 │   └── examples/example-invocation.md
-├── squad-decompose/SKILL.md      # scope → a DAG of verifiable stories, then STOP
+├── slice/                        # de-risked product.md → Shape Up slice candidates
+│   ├── SKILL.md
+│   ├── references/shape-up.md
+│   ├── templates/slice-candidates.template.md
+│   └── examples/shiori-slices.md
+├── squad-decompose/SKILL.md      # a chosen slice / scope → a DAG of verifiable stories, then STOP
 ├── squad-execute/SKILL.md        # execute the backlog behind the evidence gate
 └── _shared/                      # the squad contract, shared so the two can't drift
     ├── references/{schemas,conventions,adapters}.md
