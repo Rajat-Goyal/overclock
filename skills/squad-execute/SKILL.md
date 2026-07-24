@@ -1,7 +1,6 @@
 ---
 name: squad-execute
 description: This skill should be used when the user asks to "execute the next story", "run the squad", "ship story S...", "work the backlog", "run the slice", or to implement stories from a user-story.json backlog. It runs a squad (subagent) execution loop behind an evidence gate — select a ready story from the DAG, delegate implementation, verify each acceptance criterion independently, and close only on green. Pacing is chosen at the start of the run. Pairs with squad-decompose.
-version: 0.1.0
 ---
 
 # squad-execute

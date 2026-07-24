@@ -1,7 +1,6 @@
 ---
 name: spike
 description: This skill should be used when the user asks to "create a spike", "write a spike.md", "spec out this spike", "turn this scope into a spike", or picks one of the candidate spikes from a derisk run and wants it written up. It takes a chosen spike (or a rough scope), invokes the grill-me skill to gather the minimum viable decisions — including local setup, how the evidence loop runs, and where it deploys — asks where the file should live, and writes a concrete spike.md. Feeds squad-decompose.
-version: 0.1.0
 ---
 
 # spike

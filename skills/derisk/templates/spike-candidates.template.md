@@ -1,15 +1,23 @@
 # Spike candidates: <product name>
 
-*Source: <product.md / brief / concerns as of DATE>. These are **candidates** — proposals
-to choose from, not a plan. Read them, pick the spike(s) worth running, then invoke the
-`spike` skill for your choice.*
+*Source: <product.md / brief / concerns as of DATE>. Provenance: `[stated]` in source ·
+`[verified]` cited external · `[inferred]` guess · `[unanswered]`. These are **candidates** —
+proposals to choose from, not a plan.*
+
+## Concern decomposition
+
+Each concern split into its smallest answerable claims — parts can land in different quadrants.
+
+| Concern | Known portion | Unknown portion → candidate |
+| --- | --- | --- |
+| <concern> | `[stated]` <what the source settles> | `[unanswered]` <what's open> → Candidate <n> |
 
 ## Candidate spikes, in suggested priority order
 
 > Suggested first: **Candidate <n>**, because <one line>. Your call.
 
 ### Candidate 1 — <the question in one line>
-- **Rationale (why it's a candidate + why this rank):** <what it de-risks; what breaks, gets expensive, or blocks launch if guessed wrong>.
+- **Rationale (why it's a candidate + why this rank):** <what it de-risks; the cost of guessing wrong>.
 - **Options:**
   1. <approach A — plain language>
   2. <approach B>
@@ -27,24 +35,29 @@ to choose from, not a plan. Read them, pick the spike(s) worth running, then inv
 
 ## The reasoning — Rumsfeld matrix
 
-### 🟢 Known knowns — we know how (confidence)
-- **<concern>** — <one-line: the answer, so it isn't re-litigated>.
+At a glance:
+
+|                     | **Aware of it**              | **Not aware**            |
+| ------------------- | ---------------------------- | ------------------------ |
+| **Know the answer** | 🟢 Known known               | 🟡 Unknown known         |
+| **Don't know**      | 🔵 Known unknown → candidate | 🔴 Unknown unknown       |
+
+### 🟢 Known knowns — `[stated]`/`[verified]`, we know how
+- **<claim>** — <one-line answer> `[stated]`
 
 ### 🔵 Known unknowns — we know we don't know → the candidates above
-- **<concern>** — → Candidate <n>.
+- **<claim>** — → Candidate <n> `[unanswered]`
 
-### 🟡 Unknown knowns — assumptions we're leaning on (make them explicit)
-- **<assumption>** — <one line: what we're silently assuming + the risk if it's wrong>.
+### 🟡 Unknown knowns — existing knowledge/constraint not yet connected
+- **<claim>** — <the already-known fact the builder hasn't tied to this decision> `[stated]`
 
-### 🔴 Unknown unknowns — blind spots (go scouting)
-- **<territory>** — <one line: where surprises hide + who/what to ask to surface them>.
+### 🔴 Unknown unknowns — blind spots (go scout, then cite)
+- **<territory>** — <where surprises hide + who/what to check>
 
 ---
 
 ## Not yet answered
 - <anything still open — including unknown-unknowns to go scout>.
-
----
 
 ## Next step (your call)
 Pick a candidate, then run the **`spike`** skill on it to produce a `spike.md`. `derisk`

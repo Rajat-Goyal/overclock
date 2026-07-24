@@ -1,7 +1,6 @@
 ---
 name: squad-decompose
 description: This skill should be used when the user asks to "break this into stories", "decompose this slice/feature", "plan this into chunks", "create the backlog", "write user-story.json", "turn this scope/RFC into stories", or to add a new ask to an existing story backlog. It decomposes scope into right-sized, independently-verifiable stories in a machine-readable backlog, then STOPS for approval before any implementation. Pairs with squad-execute.
-version: 0.1.0
 ---
 
 # squad-decompose

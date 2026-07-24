@@ -1,122 +1,130 @@
-# De-risking: a personal assistant over Telegram
+# De-risking (worked example): a personal assistant over Telegram
 
-*Worked example for the `derisk` skill. Product (inferred from the concerns): a
-personal assistant the builder talks to in **Telegram**, that can read their **Google
-Calendar** and **Gmail**, and holds **multi-turn conversations that pause and resume**.
-Built by someone who is **not an engineering expert**, for their own use.*
+*Shows the `derisk` skill working **source-disciplined**: it decomposes each concern,
+labels provenance, classifies the parts, and — crucially — does not spike what the brief
+already answered. External facts it leans on are `[verified]` against current docs and
+cited; everything else is `[stated]` or `[inferred]`, never dressed up as fact.*
 
-The four concerns the builder raised are all in one quadrant — *known unknowns* — which
-is exactly why they feel like the scary part. The value of the matrix is the **other
-three quadrants**: the things they didn't list but should worry about (or stop worrying
-about).
+## The source for this example (assumed `product.md`)
 
-## The Rumsfeld matrix
+> **Product:** a personal assistant you talk to in **Telegram**.
+> **Deployment:** **Railway**, always-on.
+> **v1 scope:** read your Google **Calendar** (read-only) to see commitments; hold
+> conversations that can **pause and resume**.
+> **Out of v1:** **Gmail**; email correlation.
+> **Users:** single owner (just you).
 
-### 🟢 Known knowns — we know how (confidence, no spike)
-- **Creating the bot** — a Telegram bot is registered with @BotFather, which issues a
-  token; that token is how your code authenticates. Well-trodden, thousands of guides.
-- **The "brain"** — the assistant's replies are an API call to an LLM provider; that
-  part is a solved, documented integration.
+Everything below reasons from *this* brief. Nothing is invented to fill a gap.
 
-### 🔵 Known unknowns — we know we don't know → **spikes**
-- **How does the app connect to Telegram?** → Spike 2.
-- **What does deployment look like?** → Spike 3.
-- **How do I give it access to my Calendar and Gmail?** → Spike 1.
-- **How does it pause and resume a multi-turn conversation?** → Spike 4.
+## Concern decomposition
 
-### 🟡 Unknown knowns — assumptions you're leaning on (make them explicit)
-- **"It's just me."** The whole design silently assumes a single user, so no login, no
-  per-user data separation. Fine — but write it down: the day you want to share it, that
-  assumption is a rebuild, not a tweak.
-- **"Google will just let my app read my email."** You're assuming access is a
-  formality. It is not always (see the red quadrant) — this assumption is doing a lot of
-  quiet load-bearing.
-- **"Telegram is the right front door."** Assuming the interface is settled; cheap to
-  accept, worth saying out loud.
+The same concern splits into parts that belong in different quadrants:
 
-### 🔴 Unknown unknowns — blind spots (go scouting)
-- **Google's verification wall.** Reading Gmail uses a *restricted* permission. Google
-  can require an app-verification / security review before it will grant that to a real
-  account — potentially **weeks**, and a first-time builder never sees it coming. Go
-  scout this **first** (it drives Spike 1's priority).
-- **What happens to a paused conversation when you redeploy or the token expires.** State
-  that lives only in memory vanishes on restart; access tokens expire and must refresh.
-- **Real-world limits & cost.** Telegram and Gmail both rate-limit; "always-on" hosting
-  and per-message LLM calls cost money. Read each provider's *limits* and *pricing* pages.
+| Concern | Known portion | Unknown portion → candidate |
+| --- | --- | --- |
+| Deployment | `[stated]` Railway, always-on | `[unanswered]` secrets, releases, rollback, monitoring → C3 |
+| Telegram | `[stated]` Telegram is the interface | `[unanswered]` bot registration, webhook config → C4 |
+| Calendar / Gmail access | `[stated]` Calendar read-only in v1; Gmail **out of v1** | `[unanswered]` Calendar consent, token refresh/reconnect → C1 |
+| Conversation pause/resume | `[stated]` conversations can pause/resume | `[unanswered]` where an unfinished conversation persists → C2 |
 
----
+**The key correction:** Gmail is **not** a candidate spike. The builder mentioned it, but
+`product.md` scoped it out of v1 — so it is *answered*, not a risk. Spiking it would be
+inventing work the source already closed.
+
+## The matrix
+
+At a glance:
+
+|                     | **Aware of it**                          | **Not aware**                         |
+| ------------------- | ---------------------------------------- | ------------------------------------- |
+| **Know the answer** | 🟢 Railway target; Telegram UI; single-owner | 🟡 Gmail already out of v1 (answered) |
+| **Don't know**      | 🔵 Calendar consent/tokens; persistence; deploy ops; TG config | 🔴 Sensitive-scope verification; token revocation on redeploy; cost at usage |
+
+### 🟢 Known knowns
+- **Deploy target** — Railway, always-on. `[stated]`
+- **Interface** — Telegram. `[stated]`
+- **Single owner** — no login / multi-tenant needed for v1. `[stated]`
+
+### 🔵 Known unknowns → candidates below
+- **Calendar consent + token lifecycle** — → C1 `[unanswered]`
+- **Unfinished-conversation persistence** — → C2 `[unanswered]`
+- **Deploy ops (secrets/releases/rollback/monitoring)** — → C3 `[unanswered]`
+- **Telegram bot + webhook config** — → C4 `[unanswered]`
+
+### 🟡 Unknown knowns — already settled, easy to miss
+- **Gmail is out of v1** — the brief already answered it; treat as done, not a spike. `[stated]`
+- **Single-owner** — means a *personal-use* OAuth path may apply (see C1), which most guides
+  aimed at public apps ignore. `[stated]` → connects to `[verified]` below.
+
+### 🔴 Unknown unknowns — go scout, then cite
+- **Google verification for a sensitive scope** — reading Calendar events is a **sensitive**
+  scope; whether a personal-use app must go through verification (and how long) is the
+  territory to confirm from Google's docs *before* ranking C1. See the verified facts below.
+- **Token revocation / redeploy** — what happens to a paused conversation or a live token
+  across a Railway redeploy.
+- **Cost & limits at real usage** — Telegram limits, per-message LLM cost.
+
+## Verified external facts (checked against current Google docs)
+
+Because these drive C1's priority, they are `[verified]` and cited — not recalled:
+
+- Reading Calendar events is a **sensitive** scope. — [Google: sensitive-scope verification](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification)
+- Gmail read scopes such as `gmail.readonly` are **restricted** (a stricter tier). — [Google: restricted scopes list](https://support.google.com/cloud/answer/13464325)
+- Google lists a **personal-use exception** to restricted-scope verification — relevant to a
+  one-owner product. — [Google: restricted-scope verification](https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification)
+
+*(Provider policies drift — re-check these at build time.)* This is what corrects the old
+version of this example, which wrongly called Calendar "non-restricted" and treated a Gmail
+"verification wall" as the top risk. With Gmail out of v1 and a personal-use path available,
+the external blocker is smaller than it first appears.
 
 ## Candidate spikes, in suggested priority order
 
-> Suggested first: **Spike 1** — not because it's the hardest to code, but because the answer is
-> partly **outside your control** (Google's approval timeline). If it's going to take
-> weeks, you want that clock started before you build anything on top of it.
+> Suggested first: **C1**, because its risk is partly external (Google consent) — but first
+> confirm from the docs above whether personal-use verification even applies; that check is
+> 20 minutes and may downgrade C1 from "blocker" to "routine". Your call.
 
-### Spike 1 — How do I let the app read my Google Calendar and Gmail, securely?
-- **Why it's risky:** access to Gmail is a sensitive/restricted permission; Google may
-  demand app verification before granting it, which can block launch for weeks. Guessing
-  wrong here doesn't cost a re-code — it costs the timeline.
-- **Options:**
-  1. **Google OAuth directly** — create a Google Cloud project, configure a consent
-     screen, request calendar + gmail scopes, store the tokens. Most control, most setup,
-     you hit the verification question head-on.
-  2. **A connector service** (Composio / Nango / Pipedream, or a Google MCP connector) —
-     it handles the OAuth dance for you; you get an API. Faster start, a dependency and
-     possibly a cost.
-  3. **Narrow the ask** — start read-only, calendar-only (a *non*-restricted scope), add
-     Gmail later. Smallest permission that proves the idea, least verification friction.
-- **Time-box:** 1 day (plus however long Google's review takes — start it now).
-- **Done when:** the app can print today's calendar events and the subject of your latest
-  email, using stored credentials — **and** you know whether/how long verification takes.
+### C1 — Can a single-owner app read my Calendar, and how do tokens refresh/reconnect?
+- **Rationale:** Calendar events are a `[verified]` sensitive scope; a wrong guess about
+  verification could add an external wait, though the personal-use path may avoid it.
+- **Options:** OAuth directly via a personal-use project · a connector service (Composio /
+  Nango) · testing-mode app with yourself as the sole test user.
+- **Rough time-box:** ~1 day, plus any verification wait.
+- **Done when:** the app lists today's events with stored credentials, and you know whether
+  verification applies for personal use.
 
-### Spike 2 — How does my code receive and reply to Telegram messages?
-- **Why it's risky:** low. It's well-trodden — the risk is picking an approach that
-  fights your hosting choice (Spike 3), so decide them together.
-- **Options:**
-  1. **Webhook** — Telegram POSTs each message to a public URL of yours. Efficient; needs
-     an always-reachable URL (pairs with serverless/PaaS hosting).
-  2. **Long-polling** — your code continuously asks Telegram "anything new?". Simplest to
-     run locally; needs a process that's always on.
-  3. Use a **library** (grammY, python-telegram-bot) over the raw Bot API either way — it
-     handles the fiddly parts.
-- **Time-box:** a few hours.
-- **Done when:** you send the bot a message and it echoes it back, end-to-end.
+### C2 — Where does an unfinished conversation persist across restarts?
+- **Rationale:** "pause and resume" is the product's core `[stated]` promise; the naive
+  in-memory approach silently loses every conversation on redeploy.
+- **Options:** a DB keyed by chat id · a durable workflow engine (Inngest / Temporal) ·
+  in-memory (reject except for a throwaway prototype).
+- **Rough time-box:** ~1 day.
+- **Done when:** message → restart the app → follow-up still remembers the thread.
 
-### Spike 3 — Where does this run so Telegram can always reach it?
-- **Why it's risky:** low — many easy options. The only real trap is a choice that can't
-  keep state or costs a lot when idle.
-- **Options:**
-  1. **Platform-as-a-Service** (Railway / Render / Fly.io / Vercel) — push code, get a
-     URL, minimal ops. Best fit for a non-expert.
-  2. **A small always-on VPS** — most control, most babysitting.
-  3. **Serverless functions** behind the Telegram webhook — cheap at rest, but pause/
-     resume state must live in a database (see Spike 4), never in memory.
-- **Time-box:** a few hours.
-- **Done when:** the Spike-2 echo bot replies from a deployed URL, not your laptop.
+### C3 — How do secrets, releases, rollback, and monitoring work on Railway?
+- **Rationale:** `[stated]` Railway is the target, but the operational parts are
+  `[unanswered]` — and they are what turn a demo into something you can run.
+- **Options:** Railway env vars + deploy-on-push + logs · add a health check and an alert ·
+  confirm a rollback path.
+- **Rough time-box:** a few hours.
+- **Done when:** a deploy with a secret set, a rollback tested, logs visible.
 
-### Spike 4 — How does a conversation survive across messages and restarts?
-- **Why it's risky:** high, and architectural. It's the core of the product ("pause and
-  resume"), and the naive approach (keep it in memory) silently loses every conversation
-  on each redeploy.
-- **Options:**
-  1. **A database keyed by chat id** — store the conversation state per Telegram chat;
-     reload it on each message. Simplest, robust across restarts.
-  2. **A durable workflow engine** (Vercel Workflow / Inngest / Temporal) — built to
-     pause a task and resume it later; more power, more concepts to learn.
-  3. **In memory only** — reject except for a throwaway prototype; it fails the moment you
-     redeploy.
-- **Time-box:** 1 day.
-- **Done when:** you message the bot, restart the app, send a follow-up, and it still
-  remembers the thread.
+### C4 — Register the bot and wire the webhook to the Railway URL
+- **Rationale:** low risk, well-trodden; the only trap is a webhook/host mismatch.
+- **Options:** webhook (Telegram POSTs to your public Railway URL — fits an always-on host)
+  vs long-polling; use a library over the raw Bot API. *(webhook-vs-polling is `[inferred]`
+  guidance, not from the brief.)*
+- **Rough time-box:** a few hours.
+- **Done when:** the bot echoes a message back via the webhook.
 
 ---
 
-## Not yet answered (after these spikes)
-- Whether Google requires verification for your scopes, and the timeline — **the biggest
-  external risk; go ask before you build.**
-- Token refresh and secret storage (where the OAuth tokens live safely).
-- Rate limits and monthly cost at your real usage.
+## Not yet answered
+- Whether personal-use verification applies to the Calendar sensitive scope, and any timeline
+  — confirm from the cited docs before ranking C1 as a blocker.
+- Token refresh/reconnect and where secrets live on Railway.
+- Cost and rate limits at real usage.
 
-*Next step (your call): read this, pick the spike(s) to run, then invoke the `spike` skill
-for your choice — it grills you for the details and writes a `spike.md`. Once a spike lands,
-its answer is a known-known that `squad-decompose` can turn into stories.*
+*Next step (your call): read this, pick the spike(s) to run, then invoke the `spike` skill for
+your choice. Once a spike lands, its answer is a known-known that `squad-decompose` can turn
+into stories.*
