@@ -46,9 +46,9 @@ about).
 
 ---
 
-## Spikes, in priority order
+## Candidate spikes, in suggested priority order
 
-> Do **Spike 1 first.** Not because it's the hardest to code, but because the answer is
+> Suggested first: **Spike 1** — not because it's the hardest to code, but because the answer is
 > partly **outside your control** (Google's approval timeline). If it's going to take
 > weeks, you want that clock started before you build anything on top of it.
 
@@ -117,5 +117,6 @@ about).
 - Token refresh and secret storage (where the OAuth tokens live safely).
 - Rate limits and monthly cost at your real usage.
 
-*Once a spike lands, its answer is a known-known — hand it to `squad-decompose` to turn
-into stories.*
+*Next step (your call): read this, pick the spike(s) to run, then invoke the `spike` skill
+for your choice — it grills you for the details and writes a `spike.md`. Once a spike lands,
+its answer is a known-known that `squad-decompose` can turn into stories.*

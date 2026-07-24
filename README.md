@@ -84,10 +84,10 @@ cp -r overclock/skills/* ~/.claude/skills/     # Claude
 
 ```
 skills/
-├── derisk/                       # concerns → Rumsfeld matrix → candidate spikes
+├── derisk/                       # fears + concerns → Rumsfeld matrix → spike-candidates.md
 │   ├── SKILL.md
 │   ├── references/rumsfeld.md
-│   ├── templates/derisk.template.md
+│   ├── templates/spike-candidates.template.md
 │   └── examples/telegram-assistant.md
 ├── spike/                        # a chosen spike, grilled → spike.md (uses external grill-me)
 │   ├── SKILL.md

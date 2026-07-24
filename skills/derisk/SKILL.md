@@ -1,6 +1,6 @@
 ---
 name: derisk
-description: This skill should be used when the user asks to "de-risk this", "what should I spike first", "plot my concerns on the Rumsfeld matrix", "known knowns / known unknowns", "surface the risks in product.md", "what do I not know before building", or "turn my fears/concerns into spikes". It reads a product brief and/or the builder's concerns, sorts them into the Rumsfeld known/unknown matrix, gives each a one-line brief, and turns the known-unknowns into prioritized spikes with concrete options. Written for a non-expert builder. Feeds squad-decompose.
+description: This skill should be used when the user asks to "de-risk this", "what should I spike first", "plot my concerns on the Rumsfeld matrix", "known knowns / known unknowns", "surface the risks in product.md", "what do I not know before building", or "turn my fears/concerns into spikes". If no concerns are given, it first asks the builder for their biggest fears/doubts. It sorts concerns into the Rumsfeld known/unknown matrix, gives each a one-line brief, and turns the known-unknowns into prioritized *candidate* spikes (with rationale + options) written to spike-candidates.md. Written for a non-expert builder. Feeds the spike skill.
 version: 0.1.0
 ---
 
@@ -21,7 +21,7 @@ becomes a known-known and can be planned into stories.
 Supporting files (relative to this skill's directory):
 
 - **`references/rumsfeld.md`** — the four quadrants, how to classify, spike anatomy, prioritization.
-- **`templates/derisk.template.md`** — the output shape.
+- **`templates/spike-candidates.template.md`** — the output shape.
 - **`examples/telegram-assistant.md`** — a worked example (the concerns below, plotted).
 
 ## Input
@@ -35,10 +35,19 @@ If there is no brief yet, work from the concerns alone; the matrix still holds.
 
 ## Procedure
 
-### 1. Surface the concerns
+### 1. Start with the builder's own fears, then sweep
 
-Do not stop at the concerns handed to you. Sweep the build through these lenses and add
-the questions a builder *should* be asking but may not have thought to:
+The builder's own doubts are the highest-signal input, so get them first:
+
+- **If they handed you concerns**, use them **verbatim** — don't tidy "how will I even
+  connect to Telegram" into something neater.
+- **If they only gave a `product.md` and said "derisk this"**, *ask them first* — openly,
+  not multiple-choice: what are they most worried about, least sure of, or afraid will go
+  wrong with this feature? A couple of open questions. Their words are the signal; the
+  lenses below are only there to catch what they *didn't* say.
+
+Then **sweep the build through these lenses** to add the concerns they didn't think to
+raise:
 
 - **Integration** — every external service it must talk to.
 - **Deployment / hosting** — where it runs, how it stays reachable.
@@ -58,12 +67,14 @@ the questions a builder *should* be asking but may not have thought to:
 
 Every concern gets a **one-line brief**. Only known-unknowns additionally become spikes.
 
-### 3. Turn each known-unknown into a spike
+### 3. Turn each known-unknown into a candidate spike
 
-A spike is a small investigation, not a feature. Each one names:
+Each known-unknown becomes a **candidate** spike — a proposal the builder will choose
+from, not a committed task. A spike is a small investigation, not a feature. Each names:
 
 - **The question** — the single thing you need to answer.
-- **Why it's risky** — what breaks or gets expensive if you guess wrong.
+- **Rationale** — what it de-risks, and what breaks or gets expensive if you guess wrong.
+  This is why it's a candidate worth the builder's attention.
 - **Options** — 2–3 concrete approaches to try, in plain language (these are the
   "options for the spike").
 - **Time-box** — a few hours to a day; a spike is throwaway.
@@ -76,18 +87,20 @@ pointing at the risky territory and naming **who to ask** (someone who has shipp
 before, a docs page, a forum). A 20-minute conversation often turns a launch-blocking
 surprise into a line item.
 
-### 5. Prioritize the spikes
+### 5. Prioritize the candidates
 
-Order by **risk × uncertainty × how much it blocks**. Do first the spike whose wrong
-answer would force the biggest redesign or the longest external wait (e.g. a third-party
-verification process), not the one that is merely most visible. Say plainly what to spike
-first and why.
+Order the candidates by **risk × uncertainty × how much it blocks**. Suggest first the one
+whose wrong answer would force the biggest redesign or the longest external wait (e.g. a
+third-party verification process), not the one that is merely most visible. Give each a
+one-line **reason for its rank** so the builder can judge your ordering, not just accept
+it. Say plainly what you'd do first and why — but it is a suggestion, the builder decides.
 
-### 6. Write the output
+### 6. Write `spike-candidates.md`
 
-Produce `derisk.md` (see the template): the matrix with one-line briefs, then the
-prioritized spike list. Keep it readable by a non-engineer. Note explicitly what is
-**not** yet answered.
+Produce **`spike-candidates.md`** (see the template): lead with the **prioritized candidate
+spikes, each with its rationale**, then the Rumsfeld matrix as the *reasoning* behind them,
+then what is **not** yet answered. It is named "candidates" on purpose — these are
+proposals to choose from, not a plan. Keep it readable by a non-engineer.
 
 ## For thoroughness (optional)
 
@@ -95,9 +108,18 @@ To surface concerns more completely, fan out one pass per lens (Claude: `Workflo
 agents; Codex: subagents), then merge and de-duplicate before classifying. Overkill for
 a small brief; useful for a large one.
 
-## Hand-off
+### 7. Suggest the next step — don't take it
 
-The prioritized spikes are **candidates** — the builder chooses which to run first. To
-write up a chosen one, use the **`spike`** skill: it grills for the minimum viable
-decisions (via the external `grill-me` skill) and produces a `spike.md`. As each spike resolves, record the
-answer — it is now a known-known, and `squad-decompose` can turn it into stories.
+End with a **suggestion**, not an action — the choice is the builder's:
+
+> Read `spike-candidates.md`, pick the spike(s) you want to run, then invoke the **`spike`**
+> skill for your chosen one — it will grill you for the details and write a `spike.md`.
+
+Do **not** auto-pick a candidate or auto-invoke `spike`. The whole point of *candidates* is
+that the decision belongs to the builder.
+
+## Later
+
+As each spike resolves, record the answer — it is now a known-known, and `squad-decompose`
+can turn it into stories. `derisk` maps and proposes; it never chooses the spike or commits
+the build.
