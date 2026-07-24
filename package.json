@@ -1,0 +1,33 @@
+{
+  "name": "squad-skills",
+  "version": "0.1.0",
+  "description": "Installer for the squad story-decomposition + squad-execution skills (Claude Code + Codex).",
+  "bin": {
+    "squad-skills": "bin/squad-init.mjs"
+  },
+  "type": "module",
+  "files": [
+    "bin",
+    "skills",
+    "AGENTS.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=16.7"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rajat-Goyal/squad.git"
+  },
+  "keywords": [
+    "claude-code",
+    "codex",
+    "skills",
+    "agents",
+    "workflow",
+    "user-stories",
+    "subagents"
+  ]
+}

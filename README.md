@@ -42,25 +42,41 @@ pass.** Only a human changes an AC, and only with the reason logged.
 
 ## Install
 
-### Claude Code
+One command, no npm publish or auth needed — `npx` runs the installer straight from
+this repo. Run it **from your project directory**:
 
-Copy the skills into your skills directory (they auto-discover):
+```bash
+npx github:Rajat-Goyal/squad          # interactive: pick Claude / Codex / both
+```
+
+Or skip the prompts with flags:
+
+```bash
+npx github:Rajat-Goyal/squad --claude            # Claude, project-level (.claude/skills)
+npx github:Rajat-Goyal/squad --claude --user     # Claude, user-level (~/.claude/skills)
+npx github:Rajat-Goyal/squad --codex             # Codex (.squad + an AGENTS.md block)
+npx github:Rajat-Goyal/squad --all --yes         # both, project-level, no prompts
+```
+
+What it does:
+
+- **Claude Code** — copies `squad-decompose`, `squad-execute`, and `_shared/` into
+  `./.claude/skills/` (project) or `~/.claude/skills/` (user). They auto-discover.
+- **Codex** — copies the shared references into `./.squad/` and adds a managed
+  `squad` block to your `AGENTS.md` (created if absent, updated in place on re-run).
+
+Then just ask, e.g. *"decompose this slice into stories"* or *"run the squad on the
+backlog"*. Re-running the installer is safe and idempotent.
+
+<details>
+<summary>Manual install (no npx)</summary>
 
 ```bash
 git clone https://github.com/Rajat-Goyal/squad.git
-cp -r squad/skills/* ~/.claude/skills/
+cp -r squad/skills/* ~/.claude/skills/        # Claude
+# Codex: copy squad/skills/_shared into your project and reference it from AGENTS.md
 ```
-
-This installs `squad-decompose`, `squad-execute`, and the `_shared/` reference they
-both read. Then just ask, e.g. *"decompose this slice into stories"* or *"run the
-squad on the backlog"*.
-
-### Codex
-
-Codex reads `AGENTS.md`. Point your Codex session at this repo (or copy
-[`AGENTS.md`](./AGENTS.md) and `skills/_shared/` into your project). The method,
-schemas, and gate are identical; Codex runs the squad with its subagents instead of
-Claude's Workflow tool — see [`skills/_shared/references/adapters.md`](./skills/_shared/references/adapters.md).
+</details>
 
 ## Layout
 
