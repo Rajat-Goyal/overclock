@@ -12,7 +12,11 @@ in `skills/_shared/references/`.
 ## Skills
 
 - **`skills/derisk/SKILL.md`** — turn a `product.md` (or a pile of concerns) into a
-  Rumsfeld-matrix map and a prioritized list of **spikes** to de-risk first.
+  Rumsfeld-matrix map and prioritized **candidate spikes**.
+- **`skills/spike/SKILL.md`** — turn a chosen spike + scope into a concrete `spike.md`;
+  invokes `grill-me` and asks where the file goes.
+- **`skills/grill-me/SKILL.md`** — shared primitive: ask the **minimum viable** questions
+  to settle scope, then hand the answers back. Other skills call it.
 - **`skills/squad-decompose/SKILL.md`** — turn settled scope into a DAG of right-sized,
   independently verifiable **stories** (`user-story.json`), then STOP for approval.
 - **`skills/squad-execute/SKILL.md`** — execute the backlog one story at a time behind
@@ -27,8 +31,10 @@ in `skills/_shared/references/`.
 ## Phase 0 — de-risk (when facing unknowns)
 
 Surface the questions/concerns a builder has, sort them onto the Rumsfeld matrix, and
-turn the known-unknowns into spikes (small, time-boxed, throwaway; each with concrete
-options). A resolved spike is a known-known — it feeds decomposition.
+turn the known-unknowns into **candidate** spikes (small, time-boxed, throwaway; each
+with concrete options). The builder picks which to run; the `spike` skill grills for the
+minimum viable decisions (via `grill-me`) and writes a `spike.md`. A resolved spike is a
+known-known — it feeds decomposition.
 
 ## Phase 1 — decompose (then STOP)
 

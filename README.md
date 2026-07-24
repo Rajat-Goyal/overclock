@@ -11,16 +11,19 @@ a runnable check *proved* it — measured, not suspected.
 
 ## The pipeline
 
-Three skills, meant to be used in sequence — but each stands alone.
+Skills meant to flow in sequence — but each stands alone. `grill-me` is a shared
+primitive the others call to settle scope before they act.
 
 | Skill | You have… | You get… |
 | --- | --- | --- |
-| **`derisk`** | a `product.md` or a pile of concerns | a Rumsfeld-matrix map + prioritized **spikes** to de-risk first |
-| **`squad-decompose`** | settled scope | a DAG of right-sized, independently-verifiable **stories** (`user-story.json`), then a STOP for approval |
+| **`derisk`** | a `product.md` or a pile of concerns | a Rumsfeld-matrix map + prioritized **candidate spikes** |
+| **`spike`** | a chosen candidate + rough scope | a concrete **`spike.md`**, grilled for the minimum viable decisions |
+| **`squad-decompose`** | settled scope | a DAG of right-sized, verifiable **stories** (`user-story.json`), then a STOP |
 | **`squad-execute`** | an approved backlog | the stories built by a squad, each behind an **evidence gate**, logged to `progress.json` |
+| **`grill-me`** | any of the above needs scope | the **minimum viable** questions asked — and only those |
 
-A resolved spike is a known-known → it feeds `squad-decompose`. An approved story →
-it feeds `squad-execute`. Unknowns in, shipped-and-proven out.
+Unknowns in, shipped-and-proven out: **derisk → pick a spike → `spike.md` → decompose →
+execute.** A resolved spike is a known-known; an approved story is ready to build.
 
 ## The rules that make it hold up
 
@@ -81,11 +84,15 @@ cp -r overclock/skills/* ~/.claude/skills/     # Claude
 
 ```
 skills/
-├── derisk/                       # concerns → Rumsfeld matrix → prioritized spikes
+├── derisk/                       # concerns → Rumsfeld matrix → candidate spikes
 │   ├── SKILL.md
 │   ├── references/rumsfeld.md
 │   ├── templates/derisk.template.md
 │   └── examples/telegram-assistant.md
+├── grill-me/SKILL.md             # ask the minimum viable questions (shared primitive)
+├── spike/                        # a chosen spike + grill-me → spike.md
+│   ├── SKILL.md
+│   └── templates/spike.template.md
 ├── squad-decompose/SKILL.md      # scope → a DAG of verifiable stories, then STOP
 ├── squad-execute/SKILL.md        # execute the backlog behind the evidence gate
 └── _shared/                      # the squad contract, shared so the two can't drift
