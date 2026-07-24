@@ -1,0 +1,23 @@
+{
+  "slice": "01-a-promise-that-fits",
+  "updated_at": "<ISO-8601, real date>",
+  "current_story": null,
+  "summary": "0/1 done",
+  "log": [
+    {
+      "story_id": "S01-01",
+      "started_at": "<ISO-8601>",
+      "finished_at": "<ISO-8601>",
+      "squad": "backend-core",
+      "outcome": "done | blocked | reverted",
+      "commits": ["<sha> <subject>"],
+      "ac_results": [
+        { "id": "AC1", "result": "pass | fail", "evidence": "evidence/S01-01/<file>" }
+      ],
+      "decisions": ["<choices a future squad must know about>"],
+      "deviations_from_plan": ["<what differed; an AC change is recorded here with the human's reason>"],
+      "follow_ups": ["<deferred work, with the story it belongs to>"],
+      "context_for_next": "<= 10 lines: what exists now, which interfaces are stable, what the next squad should assume and NOT re-derive"
+    }
+  ]
+}
