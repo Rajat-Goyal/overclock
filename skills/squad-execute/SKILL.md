@@ -42,48 +42,60 @@ subagents per story rather than threading one through.
 The only unavoidably long-lived context is the **lead**, which is why the role wall bars
 it from doing the work: it spawns, gates, and records, and stays thin.
 
-## Choose the pacing (ask at the start of the run)
+## Choose the pacing
 
-Ask the human how autonomous the loop should be, then honor it. Default to the third
-option:
+Three tiers. Pick like this: **if the backlog or the user's instruction already specifies a
+pacing (an execution contract), honor it.** Otherwise **ask** which tier — recommending
+**controlled-unattended** as the default. Never silently override an existing
+stop-per-story contract with unattended.
 
 1. **Stop after every story** — close one story, hand back the evidence packet, wait.
-2. **Stop at chunk/milestone edges** — run stories continuously within a milestone,
-   stop for an evidence rundown at its boundary.
-3. **Unattended + circuit-breakers (default)** — run the DAG until it is drained or a
-   stop-condition fires. Evidence is written per story either way, so an unattended
-   run still leaves a full audit trail.
+2. **Stop at chunk/milestone edges** — run stories continuously within a milestone, stop
+   for an evidence rundown at its boundary.
+3. **Controlled-unattended (recommended default)** — run the DAG until it is drained or a
+   stop-condition fires. "Controlled" because every circuit-breaker still halts it and
+   evidence is written per story, so even an unattended run leaves a full audit trail.
 
-Regardless of pacing, **every stop-condition in `conventions.md` forces an immediate
-halt** and escalation — pacing controls the *happy path* only.
+Regardless of tier, **every stop-condition in `conventions.md` forces an immediate halt**
+and escalation — pacing controls the *happy path* only.
 
 ## The loop — one story per iteration
 
-1. **Select.** From the DAG, take the lowest-id story with `status: todo` whose
-   `depends_on` are all `done`.
+1. **Select.** On the first run of a backlog, validate `schema_version` (migrate or flag
+   if unknown — don't interpret an old backlog under new rules). Then from the DAG, take
+   the lowest-id story with `status: todo` whose `depends_on` are all `done`.
 2. **Bootstrap context, in this order, and stop when you have enough:** the story
    object → its `context.read_first` → the `context_for_next` from the last 2–3
    completed stories → `git log --oneline` since the slice started. Do **not** read the
    repo broadly — that is what `read_first` exists to prevent.
-3. **Mark started.** Set `status: in_progress` + `current_story`; commit
-   `chore(<id>): start story`. A crashed run is now visible.
+3. **Mark started.** Set `status: in_progress` and **add the id to `current_stories`**
+   (an array — parallel branches each add their own); commit `chore(<id>): start story`.
+   A crashed run is now visible.
 4. **Pre-flight.** Write any artifact a subagent cannot fetch itself (designs, seed
    data, ground truth, credentials) into the repo **before** fan-out. A squad that
    cannot see what it needs will invent it.
-5. **Work — delegate to the squad** (mechanism per `adapters.md`):
-   - PM confirms the ACs against scope; rejects scope creep.
-   - Staff engineer implements in small logical commits, diff within `context.touches`.
-   - **QA verifies independently of the implementer** — a separate Workflow verify
-     agent (Claude) or a separate subagent (Codex), never the author grading itself.
-     It runs `verification.commands`, writes artifacts to `evidence/<id>/`, and returns
-     per-AC pass/fail.
+5. **Work — delegate to the squad** (mechanism per `adapters.md`). **Spawn only the roles
+   in `story.squad.members`** — never add one (e.g. Designer) just because it could apply;
+   a role deferred by the mode goes to `pending_reviews`, never silently skipped:
+   - PM confirms the ACs against the authority scope; rejects scope creep.
+   - Staff engineer implements in small logical commits, touching whatever files the story
+     genuinely needs (no file-list gate — scope + AC review catches strays).
+   - **QA verifies independently of the implementer** — a separate Workflow verify agent
+     (Claude) or a separate subagent (Codex), never the author grading itself. It runs
+     `verification.commands`, writes artifacts to `evidence/<id>/`, and returns per-AC
+     pass/fail.
+   - **Before any world-mutating action** (deployment, DB migration, webhook cutover,
+     service restart) resolve the **exact** target, check `external_actions` — refuse a
+     `deny` target, get human approval for an `approval_required` kind — and record it in
+     `external_actions_taken`.
 6. **Gate — all must hold to close:** every AC verified with evidence on disk;
-   `verification.commands` pass from a clean checkout; build + full test suite green;
-   diff within `context.touches`. Any failure keeps the story `in_progress`.
-7. **Close.** Update `user-story.json` (`status: done`) and append the `progress.json`
-   entry — including `context_for_next` (≤ 10 lines: what exists now, which interfaces
-   are stable, what the next squad should not re-derive). State-file updates are the
-   **last** commit, separate from code.
+   `verification.commands` pass from a clean checkout; build + full test suite green; the
+   change does **only what the story's scope and ACs call for** (unrelated refactors
+   rejected in review). Any failure keeps the story `in_progress`.
+7. **Close.** Update `user-story.json` (`status: done`), **remove the id from
+   `current_stories`**, and append the `progress.json` entry — including `context_for_next`
+   (≤ 10 lines), any `external_actions_taken`, and any `pending_reviews`. State-file
+   updates are the **last** commit, separate from code.
 8. **Report the evidence packet** to the human: what shipped, evidence paths, the exact
    re-run command per AC, deviations, follow-ups. Under stop-after-story / stop-at-chunk
    pacing, wait here.
@@ -99,7 +111,8 @@ halt** and escalation — pacing controls the *happy path* only.
 
 ## Stop conditions — escalate, do not decide alone
 
-Story conflicts with scope/RFC/ADR; a dependency's real output differs from what the
-story assumed; verification fails after two attempts; the story turns out too large
-(split it in `user-story.json` as `S01-04a`/`S01-04b` rather than cramming one run);
-missing credentials only the human can provide.
+Story conflicts with a `scope_authority` doc (or an authority/constraint disagreement); a
+dependency's real output differs from what the story assumed; verification fails after two
+attempts; the story turns out too large (split it as `S01-04a`/`S01-04b` rather than
+cramming one run); an external action targets a `deny` identity or an `approval_required`
+action lacks approval; missing credentials only the human can provide.

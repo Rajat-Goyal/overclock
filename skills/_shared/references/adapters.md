@@ -25,6 +25,9 @@ DAG** at run time rather than hand-writing one workflow per story.
      runs `verification.commands`, writes artifacts to `evidence/<id>/`, and returns a
      per-AC pass/fail with a `schema`. This is the adversarial-verify pattern: the
      grader is never the author.
+- **Spawn only `story.squad.members`.** One `agent()` per listed role (typically
+  staff-engineer + an independent QA); add no role that isn't listed. A role deferred by
+  the pacing mode is recorded in `pending_reviews`.
 - **Fresh by construction — a new squad every story.** Each `agent()` call spawns a new
   subagent with an empty context window; a plain call always starts fresh. Reusing an
   agent across stories would require deliberately continuing it (`SendMessage`) or a
@@ -32,9 +35,10 @@ DAG** at run time rather than hand-writing one workflow per story.
   per-role `agent()` calls means a new squad each story, guaranteed. Do **not** try to
   keep an implementer warm to "save" context — hand the next story its `read_first` and
   the prior `context_for_next` batons instead.
-- **Isolate parallel writers.** When independent DAG branches touch files
-  concurrently, spawn implementers with `isolation: 'worktree'` so their diffs do not
-  collide.
+- **Isolate parallel writers.** The parallel frontier is the ready stories in
+  `current_stories` whose anticipated work areas don't materially overlap; when
+  independent branches write concurrently, spawn implementers with `isolation: 'worktree'`
+  so their diffs and migrations can't collide, then merge in a controlled order.
 - **Gate in code, not vibes.** A story advances to `done` only when the verify agent
   returns all ACs green *and* the gate in `conventions.md` holds. A red verdict keeps
   the story `in_progress` and records failing evidence.
@@ -42,9 +46,10 @@ DAG** at run time rather than hand-writing one workflow per story.
   loops:
   - *stop-after-every-story* → run one story pipeline, return, let the human review.
   - *stop-at-chunk* → loop over a milestone's stories, then return.
-  - *unattended + circuit-breakers* (default) → loop until the DAG is drained or a
-    stop-condition fires. Use a long `ScheduleWakeup` fallback only if waiting on
-    external state the harness cannot notify you about.
+  - *controlled-unattended* (recommended default) → loop until the DAG is drained or a
+    stop-condition fires. Honor any existing pacing contract before defaulting. Use a long
+    `ScheduleWakeup` fallback only if waiting on external state the harness can't notify
+    you about.
 
 ### Individual squads without a full Workflow
 
@@ -71,21 +76,25 @@ delegates each squad role to a subagent.
 - **The lead stays the orchestrator.** It selects the ready story from the DAG,
   bootstraps context, marks start, and owns the two state files — but never writes
   implementation code itself.
-- **One subagent per squad role.** Spawn an implementer subagent with the story object
-  and `context.read_first`. Spawn a **separate** QA subagent to verify — never let the
-  implementer grade its own work (the independence rule holds identically here).
+- **One subagent per listed role.** Spawn only the roles in `story.squad.members` —
+  typically an implementer plus a **separate** QA subagent (never the implementer grading
+  its own work). Add no role that isn't listed; a deferred role goes to `pending_reviews`.
 - **Fresh squad per story.** Spawn new subagents for each story; never carry one subagent
   from story to story. Give the next story's implementer only its `context.read_first` and
   the last few `context_for_next` batons in its prompt — continuity is passed as text, not
   a warm session. A reused subagent accumulates context and breaks *one story = one session*.
-- **Sequential by default.** Without a parallel-workflow primitive, run stories one at
-  a time down the DAG. If Codex's version supports concurrent agents, independent DAG
-  branches may run in parallel — but keep the human review boundary intact.
+- **Sequential by default; parallel only with isolation.** Run stories one at a time down
+  the DAG. If Codex supports concurrent agents, independent branches (tracked in
+  `current_stories`) may run in parallel **only** with one of: (a) disjoint file/module
+  ownership *plus* coordinated migration numbering, or (b) isolated worktrees merged in a
+  controlled order. Without one, two independently valid stories collide in migrations,
+  shared wiring, config, or tests — so default to sequential.
 - **Same gate, same evidence.** The QA subagent runs `verification.commands` from a
   clean checkout and writes `evidence/<id>/`. The lead closes the story only on green.
-- **Pacing** is enforced by the lead: after a story closes, either continue down the
-  DAG (unattended, the default) or stop and hand the human the evidence packet
-  (per-story / per-chunk), halting immediately on any stop-condition.
+- **Pacing** is enforced by the lead: honor any existing pacing contract, else the chosen
+  tier — after a story closes, either continue down the DAG (controlled-unattended, the
+  recommended default) or stop and hand the human the evidence packet (per-story /
+  per-chunk), halting immediately on any stop-condition.
 
 ### Pre-flight
 

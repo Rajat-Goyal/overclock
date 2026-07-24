@@ -32,10 +32,13 @@ Read the repo before asking anything. Detect the build/test commands, the test
 runner, any existing backlog file and its id scheme, and whether a scope layer
 exists. Then choose the mode:
 
-- **Formal** — a `docs/**/slices` dir, an RFC, or an ADR is present. Stories derive
-  from those docs and carry `scope_refs`. Ambiguities become `open_questions`, never
-  guesses. "They define scope; you do not add to it."
-- **Lightweight** — no scope docs. Stories derive from the human's asks. Capture each
+- **Formal** — an authority doc (`scope.md`, a `docs/**/slices` scope) is present.
+  Record it in `scope_authority`; put any RFC/ADR in `constraint_docs` (they restrict
+  *how*, not *what*). The mere presence of an RFC/ADR does **not** make it authoritative
+  or make the project formal. Stories carry `scope_refs`. If authority and a constraint
+  doc disagree, raise an `open_question` — never guess. "The authority defines scope; you
+  do not add to it."
+- **Lightweight** — no authority doc. Stories derive from the human's asks. Capture each
   ask **verbatim** in `from_ask`; nothing is paraphrased away or lost between messages.
 
 Ask the human only for the genuinely unknowable: where the state files should live
@@ -61,16 +64,21 @@ Then:
 - Wire `depends_on` / `blocks` into a **DAG** with no cycles.
 - For each story write **`context.read_first`** — the ordered, specific reading path a
   fresh squad follows before touching anything. This is the highest-value field you
-  write; it is what keeps the story inside one session. Also set `context.touches`
-  (the files the story may change — the diff budget the gate will enforce).
+  write; it is what keeps the story inside one session. (There is **no** `context.touches`
+  / file-budget field — the squad decides which files the story needs, and scope + AC
+  review catches unrelated changes.)
+- Set `squad.members` to **only** the roles this story needs — execution spawns exactly
+  those. Don't list a role that merely *could* apply (no Designer just because copy exists).
 - Give each story real `acceptance_criteria` and a `verification` block with exact,
   re-runnable commands and a `done_when` a reviewer can confirm without reading the
   diff. A story with no way to prove it is done is underspecified — fix it now.
 
 ### 4. Write `user-story.json` and STOP
 
-Write the file to the calibrated location using the schema. Stamp `generated_at`
-with the real date. Then end the turn with:
+Write the file to the calibrated location using the schema — including `schema_version: 1`,
+`scope_authority` / `constraint_docs`, and (if the work will mutate anything outside the
+repo) an `external_actions` policy. Stamp `generated_at` with the real date. Then end the
+turn with:
 
 - A **summary table**: id, title, size estimate, `depends_on`, verification method.
 - Any **open_questions** that block execution.

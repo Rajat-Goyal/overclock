@@ -1,11 +1,21 @@
 {
+  "schema_version": 1,
   "slice": "01-a-promise-that-fits",
   "mode": "formal",
   "generated_at": "<ISO-8601, real date at write time>",
-  "source_docs": ["docs/product/slices/01-a-promise-that-fits/", "RFC-001", "ADR-002"],
+  "scope_authority": ["docs/product/slices/01-a-promise-that-fits/scope.md"],
+  "constraint_docs": ["docs/product/slices/01-a-promise-that-fits/adr.md"],
   "non_negotiables": [
     "<an invariant that outranks every story; a story that violates it is rejected, not queued>"
   ],
+  "external_actions": {
+    "allowed": ["disposable-db-reset"],
+    "approval_required": ["production-db-migration", "deployment", "webhook-cutover", "service-restart"],
+    "targets": {
+      "allow": ["<exact service/db identity that may be mutated, e.g. shiori-slice-01>"],
+      "deny": ["<identity that must never be mutated, e.g. shiori-spike>"]
+    }
+  },
   "stories": [
     {
       "id": "S01-01",
@@ -13,7 +23,7 @@
       "user_story": "As a <role>, I want <capability>, so that <outcome>",
       "from_ask": "<the human's request, VERBATIM — required in lightweight mode>",
       "why_now": "<one line: sequencing rationale; walking skeleton first>",
-      "scope_refs": ["RFC §x.y", "ADR-002"],
+      "scope_refs": ["scope.md §x.y", "ADR-002 (constraint)"],
       "in_scope": ["..."],
       "out_of_scope": ["..."],
       "acceptance_criteria": [
@@ -30,13 +40,12 @@
       "depends_on": [],
       "blocks": ["S01-02"],
       "context": {
-        "read_first": ["<ordered, specific paths a fresh squad reads before starting>"],
-        "touches": ["<files/globs this story is allowed to change — the diff budget>"]
+        "read_first": ["<ordered, specific paths a fresh squad reads before starting>"]
       },
       "squad": {
         "type": "contract-design | backend-core | integration | ux-flow",
         "members": ["staff-engineer", "qa", "pm"],
-        "rationale": "<why this composition for this story>"
+        "rationale": "<why these roles for this story — execution spawns only these>"
       },
       "status": "todo",
       "open_questions": []
