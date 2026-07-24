@@ -99,5 +99,5 @@ a small brief; useful for a large one.
 
 The prioritized spikes are **candidates** — the builder chooses which to run first. To
 write up a chosen one, use the **`spike`** skill: it grills for the minimum viable
-decisions (via `grill-me`) and produces a `spike.md`. As each spike resolves, record the
+decisions (via the external `grill-me` skill) and produces a `spike.md`. As each spike resolves, record the
 answer — it is now a known-known, and `squad-decompose` can turn it into stories.

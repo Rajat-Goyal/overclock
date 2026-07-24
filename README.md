@@ -9,10 +9,11 @@ It grew out of a real project that shipped this way: unknowns were spiked before
 were built, every ask became a story *before* it was written, and no story closed until
 a runnable check *proved* it — measured, not suspected.
 
-## The pipeline
+## The skills
 
-Skills meant to flow in sequence — but each stands alone. `grill-me` is a shared
-primitive the others call to settle scope before they act.
+Four focused skills. **Use any one on its own** — they are not a rigid pipeline. They do
+compose, though: a common path is derisk → pick a spike → `spike.md` → decompose →
+execute, with every step optional.
 
 | Skill | You have… | You get… |
 | --- | --- | --- |
@@ -20,10 +21,9 @@ primitive the others call to settle scope before they act.
 | **`spike`** | a chosen candidate + rough scope | a concrete **`spike.md`**, grilled for the minimum viable decisions |
 | **`squad-decompose`** | settled scope | a DAG of right-sized, verifiable **stories** (`user-story.json`), then a STOP |
 | **`squad-execute`** | an approved backlog | the stories built by a squad, each behind an **evidence gate**, logged to `progress.json` |
-| **`grill-me`** | any of the above needs scope | the **minimum viable** questions asked — and only those |
 
-Unknowns in, shipped-and-proven out: **derisk → pick a spike → `spike.md` → decompose →
-execute.** A resolved spike is a known-known; an approved story is ready to build.
+`spike` delegates its questioning to **`grill-me`** (Matt Pocock's skill) when it's
+installed — that one is external, not bundled here.
 
 ## The rules that make it hold up
 
@@ -89,10 +89,10 @@ skills/
 │   ├── references/rumsfeld.md
 │   ├── templates/derisk.template.md
 │   └── examples/telegram-assistant.md
-├── grill-me/SKILL.md             # ask the minimum viable questions (shared primitive)
-├── spike/                        # a chosen spike + grill-me → spike.md
+├── spike/                        # a chosen spike, grilled → spike.md (uses external grill-me)
 │   ├── SKILL.md
-│   └── templates/spike.template.md
+│   ├── templates/spike.template.md
+│   └── examples/example-invocation.md
 ├── squad-decompose/SKILL.md      # scope → a DAG of verifiable stories, then STOP
 ├── squad-execute/SKILL.md        # execute the backlog behind the evidence gate
 └── _shared/                      # the squad contract, shared so the two can't drift

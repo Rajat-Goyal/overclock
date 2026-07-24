@@ -11,16 +11,20 @@ in `skills/_shared/references/`.
 
 ## Skills
 
+Use any skill on its own — they compose but are **not** a rigid pipeline.
+
 - **`skills/derisk/SKILL.md`** — turn a `product.md` (or a pile of concerns) into a
   Rumsfeld-matrix map and prioritized **candidate spikes**.
 - **`skills/spike/SKILL.md`** — turn a chosen spike + scope into a concrete `spike.md`;
-  invokes `grill-me` and asks where the file goes.
-- **`skills/grill-me/SKILL.md`** — shared primitive: ask the **minimum viable** questions
-  to settle scope, then hand the answers back. Other skills call it.
+  delegates the questions to the external `grill-me` skill (Matt Pocock's) and asks where
+  the file goes.
 - **`skills/squad-decompose/SKILL.md`** — turn settled scope into a DAG of right-sized,
   independently verifiable **stories** (`user-story.json`), then STOP for approval.
 - **`skills/squad-execute/SKILL.md`** — execute the backlog one story at a time behind
   the evidence gate, logging to `progress.json`.
+
+`grill-me` (by Matt Pocock) is an **external** skill, installed separately — not part of
+this repo. `spike` uses it when present.
 
 ## Read first (for the squad workflow)
 
@@ -33,8 +37,8 @@ in `skills/_shared/references/`.
 Surface the questions/concerns a builder has, sort them onto the Rumsfeld matrix, and
 turn the known-unknowns into **candidate** spikes (small, time-boxed, throwaway; each
 with concrete options). The builder picks which to run; the `spike` skill grills for the
-minimum viable decisions (via `grill-me`) and writes a `spike.md`. A resolved spike is a
-known-known — it feeds decomposition.
+minimum viable decisions (via the external `grill-me` skill) and writes a `spike.md`. A
+resolved spike is a known-known — it feeds decomposition.
 
 ## Phase 1 — decompose (then STOP)
 
