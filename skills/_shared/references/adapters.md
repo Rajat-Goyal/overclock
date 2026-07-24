@@ -25,6 +25,13 @@ DAG** at run time rather than hand-writing one workflow per story.
      runs `verification.commands`, writes artifacts to `evidence/<id>/`, and returns a
      per-AC pass/fail with a `schema`. This is the adversarial-verify pattern: the
      grader is never the author.
+- **Fresh by construction — a new squad every story.** Each `agent()` call spawns a new
+  subagent with an empty context window; a plain call always starts fresh. Reusing an
+  agent across stories would require deliberately continuing it (`SendMessage`) or a
+  `fork` — the loop never does that for cross-story work. Per-story `pipeline()` items ×
+  per-role `agent()` calls means a new squad each story, guaranteed. Do **not** try to
+  keep an implementer warm to "save" context — hand the next story its `read_first` and
+  the prior `context_for_next` batons instead.
 - **Isolate parallel writers.** When independent DAG branches touch files
   concurrently, spawn implementers with `isolation: 'worktree'` so their diffs do not
   collide.
@@ -67,6 +74,10 @@ delegates each squad role to a subagent.
 - **One subagent per squad role.** Spawn an implementer subagent with the story object
   and `context.read_first`. Spawn a **separate** QA subagent to verify — never let the
   implementer grade its own work (the independence rule holds identically here).
+- **Fresh squad per story.** Spawn new subagents for each story; never carry one subagent
+  from story to story. Give the next story's implementer only its `context.read_first` and
+  the last few `context_for_next` batons in its prompt — continuity is passed as text, not
+  a warm session. A reused subagent accumulates context and breaks *one story = one session*.
 - **Sequential by default.** Without a parallel-workflow primitive, run stories one at
   a time down the DAG. If Codex's version supports concurrent agents, independent DAG
   branches may run in parallel — but keep the human review boundary intact.

@@ -26,6 +26,23 @@ Act as the **lead**: select work, delegate, review at story boundaries, own the 
 state files. **Do not write implementation code** — that belongs to squads. If found
 editing source, stop and delegate.
 
+## A fresh squad per story
+
+Every story gets a **new squad** — freshly spawned subagents with clean context windows,
+seeded only by the story object, its `context.read_first`, and the last 2–3
+`context_for_next` batons. **Never reuse or keep a previous story's agent "warm"** to
+carry it into the next story: that quietly defeats *one story = one session* — context
+accumulates, drifts, and the sizing guarantee is gone.
+
+Continuity is carried as **data, not a live session.** The written `context_for_next`
+baton (plus `read_first`) is exactly what lets a fresh squad pick up the thread without
+inheriting the last squad's bloated context — the memory without the drift. Under Claude
+this is automatic (each `agent()` call is a new subagent); under Codex, spawn new
+subagents per story rather than threading one through.
+
+The only unavoidably long-lived context is the **lead**, which is why the role wall bars
+it from doing the work: it spawns, gates, and records, and stays thin.
+
 ## Choose the pacing (ask at the start of the run)
 
 Ask the human how autonomous the loop should be, then honor it. Default to the third
