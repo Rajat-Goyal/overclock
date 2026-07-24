@@ -1,80 +1,79 @@
-# squad
+# overclock
 
-A portable method — and two agent skills — for breaking work into right-sized,
-independently-verifiable **stories**, then executing them with a **squad** of
-subagents behind an **evidence gate**. Works with both **Claude Code** (dynamic
-Workflows) and **Codex** (subagents) from a single shared definition.
+A collection of agent skills for building **faster and safer** — de-risk the unknowns,
+decompose the work into verifiable stories, then execute them with a squad of subagents
+behind an evidence gate. Works with both **Claude Code** (dynamic Workflows) and **Codex**
+(subagents) from a single shared definition.
 
-It grew out of a real project that shipped this way: every ask became a story
-*before* it was built, and no story closed until a runnable check *proved* it —
-measured, not suspected.
+It grew out of a real project that shipped this way: unknowns were spiked before they
+were built, every ask became a story *before* it was written, and no story closed until
+a runnable check *proved* it — measured, not suspected.
 
-## The idea in one screen
+## The pipeline
 
-Two phases, two state files, one rule that outranks everything.
+Three skills, meant to be used in sequence — but each stands alone.
 
-1. **Decompose** (`squad-decompose`) — turn scope (or a stream of asks) into a DAG of
-   stories in `user-story.json`. Each story fits in one session, leaves the repo
-   green, and names how it will be proven. Then **stop** for human approval.
-2. **Execute** (`squad-execute`) — walk the DAG one story at a time. A **lead**
-   orchestrates and owns the state files but writes no code; **squads** (subagents)
-   implement; an **independent** QA agent verifies each acceptance criterion and writes
-   evidence to disk. A story closes only when the gate is green. Every run is recorded
-   in an append-only `progress.json`.
+| Skill | You have… | You get… |
+| --- | --- | --- |
+| **`derisk`** | a `product.md` or a pile of concerns | a Rumsfeld-matrix map + prioritized **spikes** to de-risk first |
+| **`squad-decompose`** | settled scope | a DAG of right-sized, independently-verifiable **stories** (`user-story.json`), then a STOP for approval |
+| **`squad-execute`** | an approved backlog | the stories built by a squad, each behind an **evidence gate**, logged to `progress.json` |
 
-The rule that outranks everything: **never weaken an acceptance criterion to make it
-pass.** Only a human changes an AC, and only with the reason logged.
+A resolved spike is a known-known → it feeds `squad-decompose`. An approved story →
+it feeds `squad-execute`. Unknowns in, shipped-and-proven out.
 
-## Why it holds up under autonomy
+## The rules that make it hold up
 
+- **Spike what you don't know before you build it.** Known-unknowns become small,
+  time-boxed, throwaway investigations with concrete options — not guesses baked into
+  production code.
 - **One story = one session.** Sized so a fresh squad can load context, build, verify,
-  and commit in a single window. (≤ ~250k context, ≤ ~10 files, ≤ 7 ACs, one vertical
-  concern.)
-- **Context is pre-computed, not rediscovered.** `context.read_first` gives each squad
-  an ordered reading path; `context_for_next` is the baton each finished story hands the
-  next. Squads stop burning their window relearning the repo.
-- **Evidence is a committed artifact, not console output.** Checks are re-runnable from
-  a clean checkout; artifacts live in `evidence/<story-id>/`.
-- **Independent QA.** Whoever verifies an AC is never the agent that wrote the code.
-- **Circuit-breakers.** Two honest fix attempts, then `blocked` and escalate. Scope
-  conflicts, dependency mismatches, and oversized stories stop the run rather than being
-  guessed through.
+  and commit in one window (≤ ~250k context, ≤ ~10 files, ≤ 7 ACs, one vertical concern).
+- **Context is pre-computed, not rediscovered.** `context.read_first` gives each squad an
+  ordered reading path; `context_for_next` is the baton each finished story hands the next.
+- **Evidence is a committed artifact, not console output.** Checks re-run from a clean
+  checkout; artifacts live in `evidence/<story-id>/`.
+- **Independent QA.** Whoever verifies an acceptance criterion is never the agent that
+  wrote the code.
+- **Never weaken an acceptance criterion to make it pass.** Only a human changes an AC,
+  and only with the reason logged. Two honest fix attempts, then `blocked` and escalate.
 
 ## Install
 
-One command, no npm publish or auth needed — `npx` runs the installer straight from
-this repo. Run it **from your project directory**:
+One command, no npm publish or auth needed — `npx` runs the installer straight from this
+repo. Run it **from your project directory**:
 
 ```bash
-npx github:Rajat-Goyal/squad          # interactive: pick Claude / Codex / both
+npx github:Rajat-Goyal/overclock          # interactive: pick Claude / Codex / both
 ```
 
 Or skip the prompts with flags:
 
 ```bash
-npx github:Rajat-Goyal/squad --claude            # Claude, project-level (.claude/skills)
-npx github:Rajat-Goyal/squad --claude --user     # Claude, user-level (~/.claude/skills)
-npx github:Rajat-Goyal/squad --codex             # Codex (.squad + an AGENTS.md block)
-npx github:Rajat-Goyal/squad --all --yes         # both, project-level, no prompts
+npx github:Rajat-Goyal/overclock --claude          # Claude, project (.claude/skills)
+npx github:Rajat-Goyal/overclock --claude --user   # Claude, user (~/.claude/skills)
+npx github:Rajat-Goyal/overclock --codex           # Codex (.overclock + an AGENTS.md block)
+npx github:Rajat-Goyal/overclock --all --yes       # both, project-level, no prompts
 ```
 
-What it does:
+What it does (skills are **auto-discovered**, so the collection can grow without changing
+the installer):
 
-- **Claude Code** — copies `squad-decompose`, `squad-execute`, and `_shared/` into
-  `./.claude/skills/` (project) or `~/.claude/skills/` (user). They auto-discover.
-- **Codex** — copies the shared references into `./.squad/` and adds a managed
-  `squad` block to your `AGENTS.md` (created if absent, updated in place on re-run).
+- **Claude Code** — copies every skill + `_shared/` into `./.claude/skills/` (project) or
+  `~/.claude/skills/` (user). They auto-discover.
+- **Codex** — copies the skills into `./.overclock/skills/` and adds a managed `overclock`
+  block to your `AGENTS.md` indexing them (created if absent, updated in place on re-run).
 
-Then just ask, e.g. *"decompose this slice into stories"* or *"run the squad on the
-backlog"*. Re-running the installer is safe and idempotent.
+Then just ask, e.g. *"de-risk this product.md"*, *"decompose this into stories"*, or
+*"run the squad on the backlog"*. Re-running the installer is safe and idempotent.
 
 <details>
 <summary>Manual install (no npx)</summary>
 
 ```bash
-git clone https://github.com/Rajat-Goyal/squad.git
-cp -r squad/skills/* ~/.claude/skills/        # Claude
-# Codex: copy squad/skills/_shared into your project and reference it from AGENTS.md
+git clone https://github.com/Rajat-Goyal/overclock.git
+cp -r overclock/skills/* ~/.claude/skills/     # Claude
+# Codex: copy overclock/skills/* into .overclock/skills/ and index them from AGENTS.md
 ```
 </details>
 
@@ -82,28 +81,28 @@ cp -r squad/skills/* ~/.claude/skills/        # Claude
 
 ```
 skills/
-├── squad-decompose/SKILL.md      # Phase 1 — plan, then STOP
-├── squad-execute/SKILL.md        # Phase 2 — execute behind the evidence gate
-└── _shared/
-    ├── references/
-    │   ├── schemas.md            # user-story.json + progress.json (the contract)
-    │   ├── conventions.md        # sizing, gate, anti-drift, commit protocol
-    │   └── adapters.md           # Claude Workflows vs Codex subagents
-    └── templates/
-        ├── user-story.template.json
-        └── progress.template.json
+├── derisk/                       # concerns → Rumsfeld matrix → prioritized spikes
+│   ├── SKILL.md
+│   ├── references/rumsfeld.md
+│   ├── templates/derisk.template.md
+│   └── examples/telegram-assistant.md
+├── squad-decompose/SKILL.md      # scope → a DAG of verifiable stories, then STOP
+├── squad-execute/SKILL.md        # execute the backlog behind the evidence gate
+└── _shared/                      # the squad contract, shared so the two can't drift
+    ├── references/{schemas,conventions,adapters}.md
+    └── templates/{user-story,progress}.template.json
 AGENTS.md                         # Codex / harness-neutral entry point
 ```
 
-## Pacing
+## Pacing (`squad-execute`)
 
-`squad-execute` asks how autonomous to be at the start of a run:
+Asked at the start of a run; default is the last:
 
 - **Stop after every story** — close one, review its evidence packet, continue.
 - **Stop at chunk/milestone edges** — run a milestone through, then review.
-- **Unattended + circuit-breakers** (default) — run the DAG to completion, stopping only
-  on a stop-condition. Evidence is written per story regardless, so an unattended run
-  still leaves a full audit trail.
+- **Unattended + circuit-breakers** (default) — run the DAG to completion, stopping only on
+  a stop-condition. Evidence is written per story regardless, so an unattended run still
+  leaves a full audit trail.
 
 ## License
 

@@ -1,12 +1,13 @@
 #!/usr/bin/env node
-// squad-skills installer — copies the squad skills into a project (or user) for
-// Claude Code and/or Codex. Zero dependencies. Idempotent.
+// overclock installer — copies the overclock skill collection into a project (or
+// user) for Claude Code and/or Codex. Zero dependencies. Idempotent.
+// Skills are auto-discovered, so adding a new skill needs no change here.
 //
-//   npx github:Rajat-Goyal/squad                 # interactive
-//   npx github:Rajat-Goyal/squad --claude        # Claude, project-level (.claude/skills)
-//   npx github:Rajat-Goyal/squad --claude --user # Claude, user-level (~/.claude/skills)
-//   npx github:Rajat-Goyal/squad --codex         # Codex (.squad + AGENTS.md)
-//   npx github:Rajat-Goyal/squad --all --yes     # both, project-level, no prompts
+//   npx github:Rajat-Goyal/overclock                 # interactive
+//   npx github:Rajat-Goyal/overclock --claude        # Claude, project (.claude/skills)
+//   npx github:Rajat-Goyal/overclock --claude --user # Claude, user (~/.claude/skills)
+//   npx github:Rajat-Goyal/overclock --codex         # Codex (.overclock + AGENTS.md)
+//   npx github:Rajat-Goyal/overclock --all --yes     # both, project, no prompts
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,11 +17,9 @@ import { fileURLToPath } from 'node:url';
 
 const PKG_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SKILLS_SRC = path.join(PKG_ROOT, 'skills');
-const SHARED_SRC = path.join(SKILLS_SRC, '_shared');
-const SKILL_DIRS = ['squad-decompose', 'squad-execute', '_shared'];
 
-const AGENTS_START = '<!-- squad:start -->';
-const AGENTS_END = '<!-- squad:end -->';
+const START = '<!-- overclock:start -->';
+const END = '<!-- overclock:end -->';
 
 const c = {
   bold: (s) => `\x1b[1m${s}\x1b[0m`,
@@ -29,6 +28,40 @@ const c = {
   cyan: (s) => `\x1b[36m${s}\x1b[0m`,
   yellow: (s) => `\x1b[33m${s}\x1b[0m`,
 };
+
+// Every top-level entry under skills/ (skill dirs + _shared) is copied verbatim.
+function skillEntries() {
+  return fs.readdirSync(SKILLS_SRC, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name);
+}
+
+// Skill dirs are those containing a SKILL.md (excludes _shared).
+function discoverSkills() {
+  return skillEntries()
+    .filter((name) => fs.existsSync(path.join(SKILLS_SRC, name, 'SKILL.md')))
+    .map((name) => ({ name, ...readFrontmatter(path.join(SKILLS_SRC, name, 'SKILL.md')) }));
+}
+
+function readFrontmatter(file) {
+  const text = fs.readFileSync(file, 'utf8');
+  const m = text.match(/^---\n([\s\S]*?)\n---/);
+  const fm = {};
+  if (m) {
+    for (const line of m[1].split('\n')) {
+      const kv = line.match(/^(\w[\w-]*):\s*(.*)$/);
+      if (kv) fm[kv[1]] = kv[2].trim();
+    }
+  }
+  return { description: fm.description || '' };
+}
+
+function firstSentence(s, max = 160) {
+  const dot = s.indexOf('. ');
+  let out = dot > 0 ? s.slice(0, dot + 1) : s;
+  if (out.length > max) out = out.slice(0, max - 1).trimEnd() + '…';
+  return out;
+}
 
 function parseArgs(argv) {
   const a = { claude: false, codex: false, all: false, user: false, project: false, yes: false, help: false, dir: null };
@@ -52,15 +85,16 @@ function parseArgs(argv) {
 }
 
 function help() {
+  const skills = discoverSkills().map((s) => `  ${c.cyan(s.name)} — ${c.dim(firstSentence(s.description, 80))}`).join('\n');
   console.log(`
-${c.bold('squad-skills')} — install the squad decomposition + execution skills.
+${c.bold('overclock')} — install the overclock skill collection.
 
 ${c.bold('Usage')}
-  npx github:Rajat-Goyal/squad [options]
+  npx github:Rajat-Goyal/overclock [options]
 
 ${c.bold('Targets')}
   --claude            Install Claude Code skills
-  --codex             Install Codex instructions (.squad + AGENTS.md block)
+  --codex             Install Codex instructions (.overclock + AGENTS.md block)
   --all               Both
 
 ${c.bold('Scope (Claude only)')}
@@ -72,6 +106,9 @@ ${c.bold('Other')}
   -y, --yes           Non-interactive; use defaults
   -h, --help          Show this help
 
+${c.bold('Skills in this collection')}
+${skills}
+
 With no target flags, the installer prompts interactively.`);
 }
 
@@ -79,67 +116,61 @@ function ask(rl, q) {
   return new Promise((resolve) => rl.question(q, (ans) => resolve(ans.trim())));
 }
 
-function copyDir(src, dest) {
-  fs.mkdirSync(path.dirname(dest), { recursive: true });
-  fs.cpSync(src, dest, { recursive: true });
+function copyInto(destRoot) {
+  fs.mkdirSync(destRoot, { recursive: true });
+  for (const entry of skillEntries()) {
+    fs.cpSync(path.join(SKILLS_SRC, entry), path.join(destRoot, entry), { recursive: true });
+  }
 }
 
 function installClaude(skillsRoot) {
-  fs.mkdirSync(skillsRoot, { recursive: true });
-  for (const d of SKILL_DIRS) copyDir(path.join(SKILLS_SRC, d), path.join(skillsRoot, d));
+  copyInto(skillsRoot);
+  const names = discoverSkills().map((s) => s.name).join(', ');
   console.log(`${c.green('✓')} Claude skills → ${c.cyan(skillsRoot)}`);
-  console.log(c.dim('  squad-decompose, squad-execute, _shared'));
+  console.log(c.dim(`  ${names}, _shared`));
 }
 
 function codexBlock() {
-  return `${AGENTS_START}
-## squad workflow (agents / subagents)
+  const list = discoverSkills()
+    .map((s) => `- **${s.name}** — ${firstSentence(s.description)}`)
+    .join('\n');
+  return `${START}
+## overclock skills
 
-This project uses the "squad" method: decompose work into right-sized, independently
-verifiable stories, then execute them with subagents behind an evidence gate.
+This project has the overclock skill collection installed at \`.overclock/skills/\`.
+Read a skill's \`SKILL.md\` before using it.
 
-Read before working:
-- \`.squad/references/schemas.md\` — user-story.json + progress.json (the contract)
-- \`.squad/references/conventions.md\` — sizing, the gate, anti-drift rules, commit protocol
-- \`.squad/references/adapters.md\` — run the loop with Codex agents/subagents (Codex section)
+${list}
 
-Phase 1 — decompose (then STOP): produce \`user-story.json\`, a DAG of stories; the
-first is a walking skeleton; each is sized to one session and carries
-\`context.read_first\` and a re-runnable \`verification\` block. End with a summary
-table and open questions; wait for approval.
+Running the **squad workflow** under Codex: use agents/subagents as described in
+\`.overclock/skills/_shared/references/adapters.md\` (Codex section). The method,
+schemas, and evidence gate are in \`.overclock/skills/_shared/references/\`.
 
-Phase 2 — execute (one story per iteration): select the lowest-id ready story from
-the DAG, delegate implementation to a subagent, verify each acceptance criterion with
-a SEPARATE subagent, write evidence to \`evidence/<story-id>/\`, close only when the
-gate is green, append to \`progress.json\`.
-
-The rule that outranks everything: never weaken an acceptance criterion to make it
-pass. Two honest fix attempts, then mark \`blocked\` and escalate.
-${AGENTS_END}`;
+The rule that outranks everything: never weaken an acceptance criterion to make a
+story pass. Two honest fix attempts, then mark it blocked and escalate.
+${END}`;
 }
 
 function installCodex(projectDir) {
-  const squadDir = path.join(projectDir, '.squad');
-  copyDir(path.join(SHARED_SRC, 'references'), path.join(squadDir, 'references'));
-  copyDir(path.join(SHARED_SRC, 'templates'), path.join(squadDir, 'templates'));
-  console.log(`${c.green('✓')} Codex references → ${c.cyan(squadDir)}`);
+  const root = path.join(projectDir, '.overclock', 'skills');
+  copyInto(root);
+  console.log(`${c.green('✓')} Codex skills → ${c.cyan(path.join(projectDir, '.overclock', 'skills'))}`);
 
   const agentsPath = path.join(projectDir, 'AGENTS.md');
   const block = codexBlock();
   let next;
   if (fs.existsSync(agentsPath)) {
     const cur = fs.readFileSync(agentsPath, 'utf8');
-    if (cur.includes(AGENTS_START) && cur.includes(AGENTS_END)) {
-      const re = new RegExp(`${AGENTS_START}[\\s\\S]*?${AGENTS_END}`);
-      next = cur.replace(re, block);
-      console.log(`${c.green('✓')} AGENTS.md — updated squad block`);
+    if (cur.includes(START) && cur.includes(END)) {
+      next = cur.replace(new RegExp(`${START}[\\s\\S]*?${END}`), block);
+      console.log(`${c.green('✓')} AGENTS.md — updated overclock block`);
     } else {
       next = cur.replace(/\s*$/, '') + '\n\n' + block + '\n';
-      console.log(`${c.green('✓')} AGENTS.md — appended squad block`);
+      console.log(`${c.green('✓')} AGENTS.md — appended overclock block`);
     }
   } else {
     next = `# Agent instructions\n\n${block}\n`;
-    console.log(`${c.green('✓')} AGENTS.md — created with squad block`);
+    console.log(`${c.green('✓')} AGENTS.md — created with overclock block`);
   }
   fs.writeFileSync(agentsPath, next);
 }
@@ -161,7 +192,7 @@ async function main() {
 
   if (interactive) {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    console.log(c.bold('\nsquad-skills installer\n'));
+    console.log(c.bold('\noverclock installer\n'));
     const t = await ask(rl, 'Install for  [1] Claude Code  [2] Codex  [3] Both  (1): ');
     claude = t === '' || t === '1' || t === '3';
     codex = t === '2' || t === '3';
@@ -188,8 +219,8 @@ async function main() {
   console.log(c.bold('\nDone.'));
   if (claude && !userScope) console.log(c.dim('Claude Code: open a session in this project; project skills auto-discover.'));
   if (claude && userScope) console.log(c.dim('Claude Code: skills are available in every project. Start a new session to pick them up.'));
-  if (codex) console.log(c.dim('Codex: reads AGENTS.md automatically; references live in .squad/.'));
-  console.log(c.dim('Then ask: "decompose this into stories" or "run the squad on the backlog".'));
+  if (codex) console.log(c.dim('Codex: reads AGENTS.md automatically; skills live in .overclock/skills/.'));
+  console.log(c.dim('Try: "de-risk this product.md", "decompose this into stories", or "run the squad on the backlog".'));
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
