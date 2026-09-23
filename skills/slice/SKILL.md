@@ -1,109 +1,163 @@
 ---
 name: slice
-description: This skill should be used when the user asks to "suggest slices", "what's the right first vertical slice", "shape this into a Shape Up pitch", "what should I build first", "give me slice candidates", "options for slices", or "shaped bets from product.md". It reads product.md and proposes candidate vertical slices shaped by Ryan Singer's Shape Up — each a compact pitch (problem, appetite, solution, rabbit holes, no-gos) that ships a meaningful end-to-end user experience — recommends the first bet with rationale, compares them, and hands the chosen slice to squad-decompose. Source-only; cites Shape Up. Written for a non-expert builder.
+description: This skill should be used when the user asks to "suggest slices", "what's the right first vertical slice", "shape this into a Shape Up pitch", "what should I build first", "give me slice candidates", "options for slices", or "shaped bets from product.md". It uses product intent, available design and evidence, and the builder's appetite to propose bounded bets, check critical mechanisms, and recommend a first bet. The human-selected pitch becomes the scope contract for squad-decompose. Written for a non-expert builder; cites Shape Up.
 ---
 
 # slice
 
-Turn a product contract into **candidate vertical slices**, each shaped the Shape Up way —
-*rough, solved, bounded* — cutting through every layer to ship a **meaningful user result**,
-not a technical layer and not a demo. Propose options, recommend the first bet, and let the
-builder choose. The chosen slice feeds `squad-decompose`.
+Choose a useful serving of the product that fits the builder's **appetite**: the investment
+of time and attention they are willing to make. `PRODUCT.md` is the whole cake; a **bet** is
+one useful serving. **Stories** are the integrated increments that build that serving.
+Cross the layers needed for this outcome, not every subsystem in the eventual product.
 
-Shape Up (Ryan Singer, Basecamp) is the frame. Shaped work must be **solved** — its big
-unknowns already worked out — so this skill assumes the scary R&D unknowns were de-risked
-first (see `derisk` / `spike`). If they haven't been, say so plainly: shaping on top of
-unresolved unknowns produces a pitch that will blow its appetite.
+Use Shape Up (Ryan Singer, Basecamp) to shape work that is rough enough to leave room for
+implementation, understood enough to bet on, and bounded. Keep the language plain and the
+paperwork proportionate: a tiny bet can have a short pitch. Shaping and de-risking can
+iterate; neither a giant design document nor answers to all future-product questions are
+prerequisites.
 
-Write for a **non-expert builder**: plain language; explain each Shape Up term once.
+Supporting files (relative to this directory):
 
-Supporting files (relative to this skill's directory):
-
-- **`references/shape-up.md`** — appetite, shaping (rough/solved/bounded), the vertical slice, the pitch's five ingredients, betting — with citations.
-- **`templates/slice-candidates.template.md`** — the output shape.
-- **`examples/shiori-slices.md`** — a worked example.
+- **`references/shape-up.md`** — principles and primary sources.
+- **`templates/slice-candidates.template.md`** — options and a selected-pitch contract.
+- **`examples/shiori-slices.md`** — appetite-led choices and an honest readiness check.
 
 ## Modes — do only what's asked
 
 | The ask sounds like… | Mode | Output |
 | --- | --- | --- |
-| "suggest slices / options / what should I build first" | **options** | candidate slices + a recommended first bet + comparison, in the conversation |
-| "shape <slice> into a pitch" | **shape** | the full five-ingredient pitch for one chosen slice |
-| "write slice-candidates.md" | **write** | `slice-candidates.md` on disk |
+| "suggest slices / options / what should I build first" | **options** | candidates + recommendation + comparison, in the conversation |
+| "shape <slice> into a pitch" | **shape** | one pitch, with readiness and missing decisions visible |
+| "write slice-candidates.md" | **write** | candidates on disk, still options until selected |
 
-Default to **options**. Never place the bet for the builder — only the next pitch gets
-shaped and committed; the rest stay options.
-
-## Source boundary
-
-- Reason from **`product.md`** and what the builder tells you. Don't invent scope.
-- Treat **Shape Up as the authority** on method; cite the relevant chapter when you apply a
-  principle (see the reference). Don't paraphrase Shape Up as if it were your own rule.
+Never place the bet for the builder or auto-decompose. Honor a choice already made.
+Selection for execution makes the pitch durable: save it (default `slice.md`, or an
+existing scope path) with a stable ID/revision and the human's approval reference. A
+candidate document may be used if an exact selected section and revision are identified;
+its other options are not authorized scope. `squad-decompose` can persist an already
+selected conversational pitch at handoff without asking the human to select again.
 
 ## Procedure
 
-### 1. Read the contract, and check its size
+### 1. Read the available sources and establish their roles
 
-Read `product.md`. Then observe honestly: **is this one bet, or many?** A strong product
-contract usually bundles several independently risky systems — list them. Shape Up says set
-the **appetite first, then vary scope to fit**; if it won't fit, break off a *meaningful
-piece*, not a technical layer. Note which unknowns `derisk`/`spike` already resolved —
-shaped work must be **solved**.
+Read `PRODUCT.md` / `product.md` and the builder's instructions. Use relevant available
+`DESIGN.md`, whiteboards/diagrams, spike findings and evidence, and existing implementation
+where they affect this bet. Record paths/sections and versions, dates or commits, what
+each source supports, and whether it is intent, an approved constraint, evidence or a
+proposal. A sketch is not automatically a decision; a spike supports only what it tested.
+Missing artifacts are fine when the scope does not need them. Never invent their contents.
 
-### 2. Set the appetite
+Product intent guides the outcome. The human-approved pitch defines the current bet;
+approved design constraints restrict how it can be built. Existing code describes reality,
+not permission to expand scope. Surface disagreements or uncertain authority as open
+questions and pause the affected commitment. Do not silently override product intent or a
+constraint. Keep the product, design, pitch and later story plan consistent; record any
+human-approved resolution. No `DESIGN.md` is required for a trivial change.
 
-Name the time budget up front, because it bounds everything: a **small batch** (~1–2 weeks)
-or a **big batch** (~6-week cycle). Appetite is a *constraint*, not an estimate — scope
-flexes to fit the time, never the reverse.
+### 2. Establish the appetite and intended learning
 
-### 3. Generate candidate vertical slices
+Reuse the appetite and intended learning already supplied. Ask only for missing decisions
+needed to select a bet. Record a concrete time/investment limit, who is available, when the
+clock starts and how usage is counted (e.g. elapsed deadline or cumulative working hours).
+Include integration and verification in that limit; make any earlier shaping/spike time's
+inclusion explicit. If appetite is still unknown, give conditional options, not an approved
+commitment. Do not invent approval or a start time.
 
-Each candidate must **cross every layer and end in a meaningful user result** — something a
-person can actually use, not "the system can store an intention." Shape each as a compact
-pitch:
+Shape Up's one-to-two-week and six-week team cycles are examples, not defaults for a
+workshop. An afternoon or two sessions can be appropriate. Appetite is a constraint, not an
+estimate. Per-story context sizing and optional agent token/cost limits are separate;
+neither resets or replaces the overall bet limit.
+[Set boundaries](https://basecamp.com/shapeup/1.2-chapter-03)
 
-- **Problem** — the real user problem, in a sentence or two.
-- **Appetite** — small or big batch.
-- **User experience** — a short numbered walk-through of the actual flow.
-- **Included** — what's in.
-- **No-gos** — what's explicitly out. These are the circuit breaker: cut, not
-  deferred-maybe.
-- **Rabbit holes** — the traps that could blow the appetite.
-- **Why it fits Shape Up** — rough, solved, bounded, and a meaningful result.
-- For non-recommended options: **why not first**.
+### 3. Shape candidates and check readiness
 
-### 4. Recommend the first bet
+For each serious candidate describe:
 
-Recommend the **smallest slice that proves the product's actual value** — the core promise,
-not merely a capability. ("It helps the user follow through," not "it can store an
-intention.") Justify with Shape Up's betting questions: does the **problem matter**, is the
-**appetite right**, is the **timing right**?
+- **Problem and outcome** — who can do what, and the value hypothesis to test.
+- **Appetite** — the approved boundary or clearly labeled conditional assumption.
+- **Solution / user experience** — user action → mechanism → observable result.
+- **Included scope** and **no-gos** — what is in and explicitly excluded.
+- **Permissible cuts** — simplifications that preserve the useful outcome. Protect essential
+  quality, permissions, data integrity and truthfulness; these are never scope cuts.
+- **Mechanisms and evidence** — for the few mechanisms that could sink this bet, record
+  the proposed approach, supporting evidence and its limits, and remaining unknowns.
+- **Rabbit holes and readiness** — label critical unknowns. A plausible name such as
+  "durable scheduler" is not evidence that the design works.
+- **Integrated verification** — one concrete end-to-end scenario, observable success,
+  essential failure cases and where its evidence will live. Reuse existing checks.
 
-### 5. Compare and sequence
+If an unresolved mechanism could invalidate this outcome or appetite, mark the candidate
+**not ready to bet**. Recommend a targeted `derisk` / `spike` investigation or a narrower
+outcome that avoids that risk, then revisit the pitch. An established pattern, inspected code or a small targeted probe may supply
+enough feasibility evidence; do not require the completed feature before betting. Ordinary
+implementation details can remain open; unknowns belonging only to excluded future scope need not block this bet.
+[Risks and rabbit holes](https://basecamp.com/shapeup/1.4-chapter-05)
 
-Give a **comparison table** — slice · user value shipped · appetite · product risk tested ·
-good first bet? — and a **suggested sequence**, explicitly non-committal: only the next bet
-gets shaped and chosen; the rest remain options, not a backlog.
+### 4. Recommend and compare
 
-### 6. Keep it honest
+Recommend the smallest useful outcome that fits the actual appetite and tests the intended
+value hypothesis. A release supplies evidence to evaluate value; shipping does not prove
+value. A small capture-and-visible-status outcome may be worth choosing even if the full
+vision includes reminders. Compare outcome, appetite, learning and critical readiness.
+Only the next bet is committed; possible later bets remain options, not a promised backlog.
+[Place your bets](https://basecamp.com/shapeup/2.3-chapter-09)
 
-The shipped slice must **tell users the truth** about what it does and doesn't do yet. An
-honest "for now I can only do X" beats pretending to support the whole contract — never let
-a slice imply capabilities it doesn't have.
+The bet aims at a useful released outcome. Stories may be honestly labeled **internal,
+demoable increments**, beginning with a walking skeleton. Each connects an action to an
+observable result through the layers it needs; it need not be a separately released
+product. A demo or green story is not evidence that the entire bet has shipped.
+[Get one piece done](https://basecamp.com/shapeup/3.2-chapter-11)
 
-### 7. Suggest the next step — don't take it
+### 5. Show the choices visually
 
-> Pick a slice. If you want it fully shaped, ask me to shape it into a pitch (a one-sentence
-> boundary + the five ingredients). Then hand that scope to `squad-decompose` to break into
-> stories.
+Default to compact, editable **Mermaid embedded in Markdown**, alongside the short pitch.
+Respect a text-only preference or deliberately tiny answer. For a small decision, a few
+nodes are enough; do not require an external tool or a large notation system.
 
-Don't auto-pick or auto-decompose. **If `squad-decompose` isn't installed**, say so: the
-chosen slice's *Included* + *No-gos* + *appetite* are the scope you'd break into small,
-independently verifiable stories by hand.
+- Draw a candidate overview: stable candidate ID, outcome, appetite/boundary, and the
+  meaningful addition or exclusion. Label mutually exclusive choices **alternatives for
+  this bet**. Show potential later increments separately as **uncommitted options**, with
+  no roadmap arrows implying approval.
+- For each serious candidate, draw a small experience breadboard: user action or trigger
+  → necessary system/agent mechanism → observable result. Include confirmation and external
+  action boundaries, plus failure/recovery paths essential to usefulness. Mark unresolved
+  mechanisms **UNKNOWN** with dashed lines. APIs and event-driven systems can end in a
+  response, emitted event, stored result or operator-visible log; no graphical UI is required.
+- Distinguish **EXISTS**, **CANDIDATE** and **OUT / future** with node labels/line styles as
+  well as restrained colors. Use only the out-of-scope context that helps explain a boundary.
+  Label required layers (interaction/trigger, logic, storage/delivery/result) so readers can
+  see the complete thread. This is an experience flow, not the later story dependency DAG.
+- Render/embed diagrams in conversation-only options mode without writing files or
+  publishing. In requested write mode, persist them with the candidates. Respect an
+  explicitly requested destination such as Miro if supported; if unavailable, say so and
+  provide portable Mermaid plus readable action→result text. No connector, image generation
+  or remote publication is a prerequisite. Include the text fallback when rendering fails.
+- Check syntax with a Mermaid parser/renderer when available, and inspect readability.
+  Otherwise state that rendering is unverified and provide a text fallback. Check every
+  node/edge against scope and source evidence; an attractive diagram must not turn an
+  unknown into a solved mechanism. Compare at least two candidates when offering options,
+  unless the user requested one/tiny output. Ensure later options appear uncommitted.
 
-## Later
+### 6. Make the selected pitch the handoff
 
-The chosen slice is a shaped bet. `squad-decompose` turns its Included/No-gos into a story
-DAG; `squad-execute` builds them behind the evidence gate. Keep `product.md` as the
-north-star contract and the slice as the current pitch — don't let the pitch overwrite the
-contract.
+Use the template's selected-pitch section to retain outcome, approved appetite, source and
+design references, mechanisms/evidence/unknowns, included scope, no-gos, cuts, integrated
+verification, and stop/reshape decisions. Include ID/revision and approval provenance. Carry the selected candidate's visual into
+this artifact (or its textual equivalent if requested). Update it with scope/design/evidence
+changes so the drawing, pitch and execution handoff say the same thing.
+`PRODUCT.md` remains the vision; the selected pitch is the current scope contract.
+
+No-gos exclude scope; cuts simplify included scope. The **circuit breaker** means the bet
+gets **no automatic extension** when its investment limit is reached. Before that limit,
+use approved cuts or stop to reshape. At the limit, stop work, preserve unfinished code,
+evidence, open questions and a resumable checkpoint, and report what did and did not work.
+Preservation is not shipped value or a promise of continuation. Further investment needs a
+fresh human-approved bet. If the bet finishes early, inspect the outcome and learning, then
+let the human deliberately choose another serving; do not fill spare capacity automatically.
+[The circuit breaker](https://basecamp.com/shapeup/2.2-chapter-08)
+
+Suggest `squad-decompose` as the next step, without running it unless requested. It consumes
+the selected contract and carries the appetite and integrated check into `user-story.json`.
+If unavailable, the same contract supports manual story planning. Tell users precisely
+what the selected outcome does and does not support.

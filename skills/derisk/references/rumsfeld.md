@@ -107,5 +107,7 @@ real against current docs before ranking on it.
 
 ## Where this feeds
 
-A resolved spike is a known-known. Feed it to `squad-decompose`: the answer becomes the
-`context.read_first` and the constraints for the stories that build it for real.
+A resolved spike supports only the mechanisms and conditions it actually tested. Feed its
+findings and evidence limits to `slice` or `squad-decompose`: they inform readiness,
+`context.read_first` and implementation constraints. Shaping can reveal another targeted
+question; unrelated future-product unknowns need not block a small bet.

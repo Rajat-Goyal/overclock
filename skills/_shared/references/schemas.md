@@ -7,7 +7,7 @@ together at a location chosen during calibration (default: repo root).
 Keep these schemas identical across both skills and both harness adapters — they
 are the contract. Copyable starting points live in `../templates/`.
 
-Both files carry **`schema_version`** (currently `1`). Before acting, a skill
+Both files carry **`schema_version`** (currently `2`). Before acting, a skill
 validates it: an unknown/older version is migrated or flagged, never silently
 interpreted under newer rules.
 
@@ -16,18 +16,19 @@ interpreted under newer rules.
 ## `user-story.json` — the plan
 
 Written by `squad-decompose`. Read by `squad-execute`. Amended (never rewritten)
-when new work arrives.
+when approved changes to the current bet arrive.
 
 ### Top level
 
 | Field | Meaning |
 | --- | --- |
-| `schema_version` | Integer, currently `1`. Validate before acting. |
+| `schema_version` | Integer, currently `2`. Validate before acting. |
 | `slice` / `project` | Identifier for this body of work. |
 | `mode` | `"formal"` \| `"lightweight"`. Formal derives stories from authority docs; lightweight from captured asks. |
 | `generated_at` | ISO-8601. Stamp with the real date at write time — never invent a clock mid-run. |
-| `scope_authority` | Paths to the doc(s) that **define product scope** (e.g. `scope.md`). These win. |
+| `scope_authority` | Paths to the selected pitch/scope that **define this bet**, not every feature in the product vision. |
 | `constraint_docs` | Paths to docs that **restrict implementation** (RFC/ADR). They constrain *how*, not *what*. |
+| `bet` | Required execution contract: selected pitch reference, approval, appetite and integrated verification (below). |
 | `non_negotiables` | Invariants that outrank every story. A story that violates one is rejected, not queued. |
 | `external_actions` | Mutation-authority policy (object below). Governs anything that changes the world outside the repo. |
 | `stories` | Array of story objects (below). |
@@ -36,7 +37,41 @@ when new work arrives.
 **Scope authority vs constraints.** Authority docs define *what* is in scope;
 constraint docs restrict *how* it may be built. If they disagree, do **not** pick a
 winner — raise an `open_question`. The mere presence of an RFC/ADR does not make it
-authoritative or required; only `scope_authority` defines scope.
+authoritative or required; in formal mode the selected `scope_authority` defines scope. In lightweight mode the
+verbatim asks plus their approved, saved `bet.contract_ref` define the current boundary.
+
+### `bet` object (required in both modes)
+
+The selected pitch carries the full reasoning, mechanisms/evidence, diagram (unless text-only),
+no-gos, cuts and decisions. The plan carries only what execution needs to enforce it:
+
+| Field | Meaning |
+| --- | --- |
+| `id` | Stable selected-bet ID; matches the pitch. |
+| `contract_ref` / `contract_revision` | Exact path + section and explicit revision (or commit); never an ambiguous candidates file. In lightweight mode a short saved human ask plus boundaries is sufficient. |
+| `approved_by` / `approved_at` / `approval_ref` | Human selection/approval provenance. Null while proposed; must be resolved before execution. Reuse existing approval. |
+| `appetite.limit` / `unit` | Positive numeric limit and a clear time/investment unit, e.g. `4` / `working-hours`. |
+| `appetite.capacity` | Who/what capacity the limit covers; parallel agents do not each receive a fresh bet budget. |
+| `appetite.accounting` | How to measure usage, including whether shaping/spikes count. Covers implementation, integration and verification. No invented precision. |
+| `appetite.starts_when` / `started_at` | Agreed start trigger and actual ISO timestamp (null until triggered). A resume never resets the clock. |
+| `appetite.deadline_at` | ISO timestamp for an elapsed-time deadline, otherwise null. Resolve from the approved limit/start when triggered. |
+| `agent_budget` | Optional resource cap, `{limit, unit, accounting}` (e.g. tokens or cost); omit if not requested. Independent of appetite and context sizing; stop if either cap is exhausted. |
+| `verification` | Same structure as story verification, but for the integrated outcome. Use `evidence/<bet-id>/`; include exact manual steps if commands cannot establish the result. |
+
+Execution compares these fields to the selected pitch revision. A mismatch blocks affected
+work; synchronize the pitch, plan and approval instead of choosing whichever is convenient.
+Do not duplicate the whole pitch in every story: use `scope_refs` and `context.read_first`.
+
+### Migration from version 1
+
+Version 2 adds `bet` to the plan and `bet_checks` to the ledger; story objects and historical
+`log` entries keep their shape. Before new execution, preserve existing IDs, statuses,
+approvals and log entries, save/reference the selected scope, populate `bet` from approved
+context, and initialize `bet_checks: []`. Missing appetite, accounting or authority is a
+question for the human, never a six-week default. Record already consumed investment with
+evidence in an initial check; if it is unknown, pause to resolve it rather than resetting
+to zero. Stamp both files version 2 together only once the contract is complete. Do not
+backfill invented historical checks. An unknown version is flagged, not guessed at.
 
 ### `external_actions` object
 
@@ -103,18 +138,42 @@ Written by `squad-execute`. **Append-only** — never rewrite a past entry.
 
 | Field | Meaning |
 | --- | --- |
-| `schema_version` | Integer, currently `1`. |
+| `schema_version` | Integer, currently `2`. |
 | `slice` / `project` | Matches `user-story.json`. |
 | `updated_at` | ISO-8601, real date. |
 | `current_stories` | **Array** of the stories in flight (empty when idle). An array so parallel execution is represented honestly — a single `current_story` cannot describe two branches running at once. |
 | `summary` | `"<n>/<total> done"`. |
-| `log` | Append-only array of entries (below). |
+| `log` | Append-only array of story entries (below). |
+| `bet_checks` | Append-only boundary, change, integrated-check and stop records (below), including stops before any story starts. |
+
+### `bet_checks` entry
+
+| Field | Meaning |
+| --- | --- |
+| `at` / `bet_id` / `contract_revision` | Real ISO timestamp and exact approved contract checked. |
+| `stage` | `before-story` \| `after-story` \| `risk` \| `scope-change` \| `integrated` \| `stop`. |
+| `story_id` | Related story ID, or null for a bet-wide check. |
+| `consumed` / `remaining` / `unit` | Usage under the approved accounting rule; remaining is never negative. Null if unknown, requiring a pause. |
+| `measurement` | Evidence/source and uncertainty for usage; include optional agent-budget usage here when configured. |
+| `decision` | `continue` \| `cut` \| `reshape` \| `stop` \| `complete`. Complete requires integrated success and the required release/permissions checks. |
+| `reason` / `approval_ref` | Why; reference human approval for a scope swap or AC change, otherwise null. |
+| `integrated_result` | `not-run` \| `pass` \| `fail`. Green stories alone are `not-run`. |
+| `evidence` | Paths to check results or decision evidence. |
+| `checkpoint` | Path to a resumable checkpoint when stopping unfinished work; otherwise null. |
+| `external_actions_taken` | Optional `[{kind, target, approved_by}]` for bet-level verification/release mutations outside a story; same exact-identity and approval rules as story logs. |
+
+A checkpoint records the branch/commit and any uncommitted patch or worktree location,
+what works, unfinished code, failing/passing evidence, open questions, remaining scope,
+and the decision needed to resume. Preserve unfinished work without forcing a broken
+commit or labeling it shipped. A stopped active story becomes `blocked` and leaves
+`current_stories`; pending stories remain pending or explicitly parked. Append a story
+log entry if a started story stops, plus a bet check even if no story started.
 
 ### `log` entry
 
 | Field | Meaning |
 | --- | --- |
-| `story_id` | The story this entry closes. |
+| `story_id` | The story this entry closes or stops. |
 | `started_at` / `finished_at` | ISO-8601. |
 | `squad` | Squad type + the roles actually spawned. |
 | `outcome` | `done` \| `blocked` \| `reverted`. |

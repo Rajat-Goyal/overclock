@@ -46,13 +46,29 @@ Ask the human only for the genuinely unknowable: where the state files should li
 (assign those back to the human as a task — never invent a secret). Keep it to a few
 questions; do not interrogate for what the repo already answers.
 
-### 2. Establish the non-negotiables
+### 2. Carry the selected bet into the plan
+
+Read the exact human-selected pitch and its revision, including the candidate visual,
+source/design references and evidence. If selection was conversational, save a short
+`slice.md` (or existing scope path) using the slice template's contract fields; retain the
+approval reference. Do not require the human to select again. Do not treat every option in
+`slice-candidates.md` or every feature in `PRODUCT.md` as authorized scope.
+
+Populate `bet` per `schemas.md`: approval provenance, actual appetite/accounting and one
+integrated outcome verification. Compare it with the pitch; ask only missing decisions.
+A lightweight ask needs the same boundaries, but can use a few sentences instead of a large
+pitch. Per-story context size and optional agent resource limits do not replace appetite.
+An unresolved critical mechanism or source/design conflict pauses the affected commitment:
+return to a targeted spike or reshape before execution. No DESIGN.md is required when the
+scope does not need one. Keep the experience breadboard distinct from the story DAG.
+
+### 3. Establish the non-negotiables
 
 Record the invariants that outrank every story — the things that, if violated, kill
 the product regardless of what a story says (e.g. a safety rule, a data-integrity
 rule). A proposed story that breaks one is rejected, not queued.
 
-### 3. Decompose per the sizing rule
+### 4. Decompose per the sizing rule
 
 Apply the full sizing rule from `conventions.md`. In short: one story = one session
 (≤ ~250k context, ≤ ~10 files, ≤ 7 ACs, one vertical concern, one contract change).
@@ -60,7 +76,9 @@ Then:
 
 - Make the **first** story a **walking skeleton** — the thinnest end-to-end thread
   that runs. Deepen it in later stories. Prefer vertical threads over horizontal
-  layer-by-layer stories.
+  layer-by-layer stories. Label internal demos as increments, not shipped bets. State
+  what action/result each increment demonstrates, and map it to the selected pitch.
+  Only cover layers required for this outcome; do not add future subsystems.
 - Wire `depends_on` / `blocks` into a **DAG** with no cycles.
 - For each story write **`context.read_first`** — the ordered, specific reading path a
   fresh squad follows before touching anything. This is the highest-value field you
@@ -73,9 +91,9 @@ Then:
   re-runnable commands and a `done_when` a reviewer can confirm without reading the
   diff. A story with no way to prove it is done is underspecified — fix it now.
 
-### 4. Write `user-story.json` and STOP
+### 5. Write `user-story.json` and STOP
 
-Write the file to the calibrated location using the schema — including `schema_version: 1`,
+Write the file to the calibrated location using the schema — including `schema_version: 2`, `bet`,
 `scope_authority` / `constraint_docs`, and (if the work will mutate anything outside the
 repo) an `external_actions` policy. Stamp `generated_at` with the real date. Then end the
 turn with:
@@ -87,9 +105,12 @@ Do **not** begin implementation. Wait for approval.
 
 ## Re-decomposition (amending a live backlog)
 
-Invoked again on an existing backlog, insert the new ask as a story into the DAG with
-its rationale in `why_now`. Never rewrite a `done` story; renumber only unshipped ids.
-This is how the backlog stays the single source of truth once execution is underway.
+Follow `conventions.md`: classify the request as a clarification/discovered work within
+the contract, a human-approved scope swap within the same appetite, or a future candidate /
+new bet. Do not automatically insert an addition into the active DAG. For an approved swap,
+record what leaves, update pitch/revision/visual and plan together, and append the decision
+to `bet_checks`. Never rewrite done stories or silently weaken ACs. Repair dependencies,
+check coverage and remaining appetite, and stop for approval of the amended execution plan.
 
 ## Handoff
 

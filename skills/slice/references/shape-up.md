@@ -1,66 +1,67 @@
 # Shape Up, for builders
 
-Shape Up (Ryan Singer, Basecamp) — how to shape work into bets that ship a meaningful
-result. Full text: https://basecamp.com/shapeup. When you apply a principle, **cite the
-chapter**: Shape Up is the authority, not your paraphrase.
+Shape Up (Ryan Singer, Basecamp) is the primary method reference:
+https://basecamp.com/shapeup. Cite the relevant chapter when applying it. The contract and
+ledger fields in Overclock are our adaptation for agent execution, not book terminology.
 
-## Appetite — not an estimate
+## Appetite
 
-Fix the **time budget first**, then vary scope to fit it. Two common appetites:
+Choose an investment boundary before designing the scope. The book's small batches
+(one or two weeks) and six-week cycles describe its team practice; use the builder's actual
+capacity and time boundary, including much shorter workshop bets. Record how time is counted.
+Context-window sizing and optional agent resource budgets serve different purposes.
+[Set boundaries](https://basecamp.com/shapeup/1.2-chapter-03)
 
-- **Small batch** — ~1–2 weeks.
-- **Big batch** — a ~6-week cycle.
+## Rough, solved, bounded
 
-An estimate starts from a design and asks how long; an **appetite** starts from a time and
-asks what design fits. Fixed time, variable scope — always. If the work won't fit, cut scope
-down to a smaller *meaningful* slice; never extend the time.
-[Set boundaries — ch. 3](https://basecamp.com/shapeup/1.2-chapter-03)
+Leave implementation room, but work out the core mechanisms that make the proposed outcome
+credible. Check evidence and remaining risks rather than declaring everything solved after
+one spike. Shaping may uncover another targeted investigation or lead to a narrower bet.
+Only critical unknowns within this bet block selection; unrelated future unknowns can wait.
+[Principles of shaping](https://basecamp.com/shapeup/1.1-chapter-02),
+[Risks and rabbit holes](https://basecamp.com/shapeup/1.4-chapter-05)
 
-## Shaped work = rough, solved, bounded
+## Vision, bet and integrated pieces
 
-- **Rough** — the right level of abstraction: not wireframes, not tickets. It leaves room for
-  the team to work out details.
-- **Solved** — the main elements and the big unknowns are worked out. This is why de-risking
-  (`derisk`/`spike`) comes *before* shaping: you cannot shape what is still R&D.
-- **Bounded** — a clear scope with explicit **no-gos**, so it can't sprawl.
-[Principles of shaping — ch. 2](https://basecamp.com/shapeup/1.1-chapter-02)
+The product vision can span many bets. One release bet aims at a useful outcome and offers
+evidence about a value hypothesis. Its stories build integrated, demoable pieces early,
+starting with a walking skeleton. Cover the layers needed for that piece, not every future
+subsystem. Label internal increments honestly; a working demo does not imply a released bet.
+[Get one piece done](https://basecamp.com/shapeup/3.2-chapter-11)
 
-## The vertical slice
+## The pitch
 
-Cut **through every layer** — interface, logic, data, delivery — to ship an experience a
-person can actually use. Not a horizontal layer ("build the data model"), not a demo. If a
-slice won't fit the appetite, break off a smaller slice that is **still meaningful end to
-end**, never a technical sub-layer.
+The book's five ingredients are problem, appetite, solution, rabbit holes and no-gos.
+Overclock retains those and adds a lightweight execution handoff: source/constraint
+provenance, readiness evidence, permitted cuts, integrated verification and approval.
+Requirements describe needed outcomes; mechanisms describe ways to achieve them. Compare
+alternatives honestly instead of counting an untested mechanism as satisfying a requirement.
+[Write the pitch](https://basecamp.com/shapeup/1.5-chapter-06)
 
-The best first slice is the **smallest one that proves the product's actual value** — the
-core promise it exists to deliver, not merely that it can store or understand something. If
-you stopped after it, you'd have a small but *real* product, not disconnected foundations.
+## No-gos, cuts and the circuit breaker
 
-## The pitch — five ingredients
+No-gos exclude scope. Cuts simplify included scope while preserving the outcome and
+essential quality, permission and truthfulness requirements. Neither is the circuit breaker:
+that is the rule against automatically extending a bet beyond its investment limit.
+An unfinished bet stops; preserve work and evidence for review, then reshape and seek a fresh
+bet before investing more. Unfinished artifacts are not a shipped outcome or an entitlement
+to continuation. Finishing early is also a decision point, not permission to add another bet.
+[The betting table](https://basecamp.com/shapeup/2.2-chapter-08)
 
-1. **Problem** — the raw idea or the real user problem, concretely.
-2. **Appetite** — how much time it's worth (small or big batch).
-3. **Solution** — the shaped elements, at the rough level; a walk-through of the experience.
-4. **Rabbit holes** — details worth calling out to avoid traps that blow the appetite.
-5. **No-gos** — what's explicitly excluded; the circuit breaker.
-[Write the pitch — ch. 6](https://basecamp.com/shapeup/1.5-chapter-06)
+## Betting
 
-## Betting, not backlogs
+Only the next bet is a commitment; candidates remain options. Consider whether the problem
+matters and the appetite and timing fit. Shipping enables learning about value; it does not
+prove the product's value hypothesis.
+[Place your bets](https://basecamp.com/shapeup/2.3-chapter-09)
 
-Only the **next** bet gets shaped and committed. Everything else stays an **option**, not a
-promise on a backlog. Bet by three questions: does the **problem matter**, is the **appetite
-right**, is the **timing right**? A pitch that isn't bet this cycle simply remains available.
-[Place your bets — ch. 9](https://basecamp.com/shapeup/2.3-chapter-09)
+## Historical design reference
 
-## The circuit breaker
-
-The cycle deadline is fixed. When scope threatens it, the response is to **cut scope** (lean
-on the no-gos), not to extend time. A crisp one-sentence boundary for the bet makes this
-unambiguous: anything that threatens the cycle and isn't in that sentence is out.
-
-## Honesty about scope
-
-A slice ships less than the full product contract — so the shipped thing must **tell users
-the truth** about what it does and doesn't do yet. "For now I can only manage explicit
-one-off reminders" is correct; silently implying the whole contract is not. A slice that
-pretends to capabilities it lacks is a broken bet, not a small one.
+Ryan Singer's [shaping-skills](https://github.com/rjs/shaping-skills) repository was archived
+September 21, 2026 and its README marks the skills obsolete. We use it only as historical
+inspiration, not an installation dependency or current authority. Useful ideas from
+[shaping](https://github.com/rjs/shaping-skills/blob/main/shaping/SKILL.md) and
+[breadboarding](https://github.com/rjs/shaping-skills/blob/main/breadboarding/skill.md) are
+explicit unknowns, requirements versus mechanisms, consistency across documents, and
+connecting actions to observable results. No large notation system, UI-only restriction or
+fixed slice-count limit is required here.

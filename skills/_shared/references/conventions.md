@@ -3,7 +3,7 @@
 These are harness-neutral. The Claude Code and Codex adapters (`adapters.md`)
 change *how* the loop is executed, never *these* rules.
 
-Both state files carry `schema_version` (currently `1`). Validate it before acting;
+Both state files carry `schema_version` (currently `2`). Validate it before acting;
 migrate or flag an older/unknown version rather than assuming today's rules.
 
 ---
@@ -24,6 +24,8 @@ Shape of a good decomposition:
 - The **first** story is a **walking skeleton** — the thinnest end-to-end thread
   that runs. Later stories deepen it. Prefer vertical threads over horizontal
   layer-by-layer stories.
+- Internal demoable increments are valid; label them honestly. A story is not the whole
+  release bet. Cover the layers needed for its outcome, not every future subsystem.
 - Every story leaves the repo **green** (builds, tests pass). No half-landed states.
 - Every story is **independently verifiable** — confirmable without reading the diff.
 - Dependencies form a **DAG**. No cycles.
@@ -44,6 +46,7 @@ Detect from the repo — do not interrogate the human for what is already writte
 Ask the human only for the genuinely unknowable:
 
 - Where the two state files should live (default: repo root).
+- The bet appetite/accounting and selection, if not already approved; see `schemas.md`.
 - The `non_negotiables` — invariants that outrank stories — if not already recorded.
 - The `external_actions` policy (below) if the work will mutate anything outside the repo.
 - Any credentials/access the work needs. Assign these back to the human as a task;
@@ -59,6 +62,43 @@ disagree, raise an `open_question` — do not silently promote an old RFC/ADR to
 authority with the scope.
 
 ---
+
+## Bet boundaries and completion
+
+The selected pitch is the durable scope contract; the product is the wider vision. Read
+its sources, approved design constraints, evidence and visual alongside `bet` in the plan.
+A missing design artifact is not a blocker by itself; an unresolved critical mechanism or
+source conflict is. Honor established approvals rather than asking again.
+
+**Before and after every story**, on resume, and when a material risk/change emerges:
+measure consumed and remaining appetite, review readiness and scope fit, and append a
+`bet_checks` record. Include verification time and all concurrent work per the accounting
+rule. A one-session story size is a context limit, not an extension of the bet. Optional
+agent budgets are separate caps. Unknown usage pauses work; never silently reset it.
+
+Before starting a story, leave room for integration and verification. If remaining work no
+longer credibly fits, use permitted cuts or stop for reshaping. Cuts cannot remove essential
+quality, permissions, truthfulness, independent QA or non-negotiables. Any AC change still
+requires the human's recorded reason. Review risks during a story too: if a deadline or
+resource cap is reached mid-story, stop active work at a safe checkpoint rather than waiting
+for the next boundary. Arrange a deadline/cap notification or bounded work chunks when the
+harness supports them; if it cannot monitor continuously, state that limitation and check
+at each tool/delegation boundary. Do not promise a hard real-time kill switch.
+
+At the investment limit, **no automatic extension**: halt new work, stop active squads,
+preserve code (including unfinished diffs), evidence, open questions and a checkpoint, and
+record a `stop` check. The bet is unfinished, not shipped. Further investment needs a fresh
+human-approved bet with its own scope and limit; archive/reference the old plan and ledger
+instead of overwriting them. A blocked story retry within an unexhausted bet still checks
+remaining appetite.
+
+When stories are green, independent QA runs `bet.verification` on the integrated result,
+reusing existing checks. Record `integrated_result` and evidence. A failure leaves the bet
+incomplete even if individual stories stay done: record a defect and re-decompose the fix
+within remaining scope/appetite, or stop. Required release actions still obey
+`external_actions`; tests or an internal demo alone cannot authorize deployment or a shipped
+claim. Finish early → inspect outcome and value evidence, then wait for deliberate human
+selection of another bet. Never auto-fill spare capacity with candidate scope.
 
 ## Evidence: measured, not suspected
 
@@ -93,7 +133,8 @@ webhook, a running service — is governed by `external_actions`:
 - An action kind in `approval_required` (or listed nowhere) **pauses for explicit human
   approval**. Only `allowed` kinds run unattended.
 - Record every action taken — kind, resolved target, who approved — in the ledger's
-  `external_actions_taken`. A disposable-local reset and a production migration are
+  `external_actions_taken` (on the story log, or on `bet_checks` for integrated verification
+  and release outside a story). A disposable-local reset and a production migration are
   different actions and must never be conflated.
 
 ---
@@ -123,6 +164,8 @@ webhook, a running service — is governed by `external_actions`:
 
 ## Stop conditions: escalate, do not decide alone
 
+- Appetite/resource cap exhausted or unknown, remaining scope no longer fits, or a critical mechanism lacks support.
+- The integrated outcome fails even though stories passed.
 - The story conflicts with a `scope_authority` doc (or an authority/constraint disagreement).
 - A dependency's actual output differs from what this story assumed.
 - Verification fails after two honest attempts.
@@ -154,7 +197,19 @@ it in `pending_reviews` — never silently skip it.
 
 ## Re-decomposition: amending a live backlog
 
-A new ask arriving mid-flight becomes a story like any other — inserted into the DAG,
-its rationale in `why_now`. Never rewrite a `done` story; renumber only unshipped ids.
-This keeps the backlog the single source of truth instead of drifting the moment
-execution starts.
+Classify a new ask before changing the active DAG:
+
+- **Clarification / discovered implementation work:** fits the approved outcome, constraints
+  and appetite; adjust pending stories/edges and record why. Do not smuggle a new outcome
+  into this category or weaken an AC.
+- **Scope swap:** the human approves what enters and what leaves, with rationale and the
+  same investment boundary. Update the pitch/revision/visual and plan together; append a
+  `scope-change` check with approval and any AC changes in `deviations_from_plan`.
+- **Future candidate / new bet:** an addition that expands the commitment or needs further
+  investment stays outside the active DAG until separately selected. Do not infer approval
+  from a request to discuss it.
+
+Keep the graph revisable as evidence arrives. Preserve done stories and stable IDs; park
+superseded pending work with a reason, repair edges and confirm the DAG remains acyclic.
+Before restarting, check scope coverage, integrated verification and remaining appetite.
+The backlog implements the current contract; it does not silently enlarge it.

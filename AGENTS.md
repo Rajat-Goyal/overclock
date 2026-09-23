@@ -18,8 +18,9 @@ Use any skill on its own — they compose but are **not** a rigid pipeline.
 - **`skills/spike/SKILL.md`** — turn a chosen spike + scope into a concrete `spike.md`;
   delegates the questions to the external `grill-me` skill (Matt Pocock's) and asks where
   the file goes.
-- **`skills/slice/SKILL.md`** — turn a de-risked `product.md` into **candidate vertical
-  slices** shaped by Shape Up, and recommend the first bet. The chosen slice feeds decompose.
+- **`skills/slice/SKILL.md`** — use product intent, available design/evidence and appetite
+  to propose **candidate vertical slices** and recommend a bet. The human-selected pitch
+  and visual feed decompose.
 - **`skills/squad-decompose/SKILL.md`** — turn settled scope into a DAG of right-sized,
   independently verifiable **stories** (`user-story.json`), then STOP for approval.
 - **`skills/squad-execute/SKILL.md`** — execute the backlog one story at a time behind
@@ -40,31 +41,41 @@ Surface the questions/concerns a builder has, sort them onto the Rumsfeld matrix
 turn the known-unknowns into **candidate** spikes (small, time-boxed, throwaway; each
 with concrete options). The builder picks which to run; the `spike` skill grills for the
 minimum viable decisions (via the external `grill-me` skill) and writes a `spike.md`. A
-resolved spike is a known-known — it feeds decomposition.
+spike supports only the mechanisms and conditions its evidence tested; shaping may reveal
+further critical questions. Feed those findings into shaping or decomposition.
 
 ## Phase 0.5 — shape the slice (Shape Up)
 
-Once the scary unknowns are de-risked (shaped work must be *solved*), read `product.md` and
-propose **candidate vertical slices** — each a compact Shape Up pitch (problem, appetite,
-solution, rabbit holes, no-gos) that ships a meaningful end-to-end result. Recommend the
-first bet; the builder chooses. Only the next bet is shaped and committed; the rest stay
-options. The chosen slice's Included/No-gos/appetite become the scope for decompose.
+Read product intent, relevant available design/whiteboards, spike evidence and implementation.
+Honor the human's appetite; ask only missing decisions. Propose bounded useful outcomes with
+compact visual comparisons and experience flows. Check the critical mechanisms for this bet;
+route unsupported ones to a targeted spike or narrower scope. Shaping and de-risking iterate.
+The human chooses; other candidates remain uncommitted. Save the selected pitch/visual with
+approval, sources/constraints, appetite/accounting, scope/no-gos/cuts and integrated verification.
+The product is the vision; the pitch is this bet; stories are integrated implementation pieces.
 
 ## Phase 1 — decompose (then STOP)
 
 Act as the **lead**; write no implementation code. Produce `user-story.json`: a DAG of
 stories, the first a walking skeleton, each sized to one session, each with
-`context.read_first` and a re-runnable `verification` block. Capture lightweight-mode
+`context.read_first` and a re-runnable `verification` block. Carry the selected pitch,
+approved appetite and integrated check in the schema-v2 `bet` contract. Capture lightweight-mode
 asks **verbatim** in `from_ask`. End with a summary table and open questions; wait.
 
 ## Phase 2 — execute (one story per iteration)
 
-Ask the human for the pacing (default: unattended with circuit-breakers). Loop: select
+Honor supplied pacing; otherwise ask (default: controlled-unattended). Loop: check remaining
+bet appetite and readiness → select
 the lowest-id ready story → bootstrap only `context.read_first` plus the last few
 `context_for_next` batons → mark started and commit → delegate implementation to a
 subagent → have a **separate** subagent verify each acceptance criterion and write
 evidence to `evidence/<story-id>/` → close only when the gate is green → append to
-`progress.json` → report the evidence packet.
+`progress.json` → check remaining appetite and report the evidence packet. After stories
+pass, independent QA verifies the integrated user outcome. Green stories alone are not a
+completed bet. At the investment limit, stop and checkpoint unfinished code/evidence/questions;
+no automatic extension or shipped claim. Further investment needs a fresh human-approved bet.
+Scope additions are clarifications, approved swaps within appetite, or future candidates;
+never silently grow the active DAG.
 
 ## The rule that outranks everything
 
