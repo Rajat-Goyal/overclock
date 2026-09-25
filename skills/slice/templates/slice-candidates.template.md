@@ -1,63 +1,128 @@
 # Slice candidates: <product name>
 
-*Source: `product.md` as of DATE. Shaped with Shape Up (chapters cited). These are
-**options** — only the next bet gets shaped and committed, not a backlog.*
+*Options, not a backlog. Use as much detail as this decision needs; a small bet may fit in
+a few paragraphs. Keep only the selected pitch fully detailed.*
 
-## Is this one bet, or many?
+## Sources and decision context
 
-`product.md` bundles several independently risky systems: <system A>, <system B>, <system C>,
-… — that's a roadmap or release vision, not one shaped pitch. Shape Up: set the **appetite
-first**, then vary scope to fit; break off a *meaningful* piece, not a technical layer.
+| Source / section / revision or date | Role (intent, constraint, evidence, proposal) | Supports / limits |
+| --- | --- | --- |
+| <PRODUCT.md or human ask> | <role> | <relevant outcome> |
+| <available DESIGN.md, whiteboard, spike, code; omit irrelevant/missing artifacts> | <role> | <what it establishes, what remains unknown> |
+
+- **Conflicts / missing decisions** — <none, or question and whose decision is needed>.
+- **Appetite already supplied** — <limit, capacity, counting rule; approval reference or unknown>.
+- **Intended learning** — <value hypothesis and the observation that would inform it>.
+- **One bet or many?** — <what useful serving could fit; no need to build the whole vision>.
 [Set boundaries](https://basecamp.com/shapeup/1.2-chapter-03)
 
-De-risked already (shaped work must be *solved*): <what derisk/spike resolved, e.g. deployment + public access>.
+## Recommendation and alternatives
 
----
+| Candidate | Useful outcome | Appetite | Learning | Readiness / why first or later |
+| --- | --- | --- | --- | --- |
+| <name> | <result> | <actual limit or conditional> | <hypothesis> | <evidence / critical unknown> |
 
-## Recommended first bet — "<name>"
+<Recommend based on appetite and learning; human selects. Future candidates are options.>
 
-> <one-sentence boundary: in one <appetite>, ship a production flow in which <the meaningful end-to-end user result>.>
+## Visual comparison (omit for text-only / deliberately tiny output)
 
-- **Problem** — <the real user problem>.
-- **Appetite** — <small batch ~1–2 wk | big batch ~6-wk cycle>.
-- **User experience**
-  1. <step>
-  2. <step>
-  3. <…ends in a meaningful result>
-- **Included** — <what's in>.
-- **No-gos** — <what's explicitly out — the circuit breaker>.
-- **Rabbit holes** — <traps that could blow the appetite>.
-- **Why it fits Shape Up** — rough, solved, bounded; ends in a meaningful user result.
-  [Principles of shaping](https://basecamp.com/shapeup/1.1-chapter-02)
+Replace the example labels and remove irrelevant context. These are alternatives, not a
+sequence. A potential later increment gets its own explicitly uncommitted group.
 
----
+```mermaid
+flowchart TB
+  subgraph choices["Alternatives for this bet — human selects one"]
+    A["A · Capture and inspect saved status<br/>4 working hours · includes confirm/save/status<br/>OUT: reminder delivery"]
+    B["B · Capture through reminder completion<br/>6 weeks only if approved · adds delivery and Done<br/>UNKNOWN: restart and ambiguous-send recovery"]
+  end
+  subgraph later["Possible later increment — uncommitted"]
+    C["C · Recurrence · excluded from A and B"]
+  end
+  style C stroke-dasharray: 5 5
+```
 
-## Other candidates
+Text fallback: A and B are alternative investments; B adds reminder/completion mechanisms
+and requires more evidence. C is an uncommitted future option, not part of either bet.
 
-### Option — "<name>"
-- **Problem** — … · **Appetite** — … · **User experience** — …
-- **Included** — … · **No-gos** — …
-- **Why it's meaningful** — …
-- **Why not first** — …
+## Selected pitch: <ID — name>
 
----
+*Status: <candidate / selected>. Revision: <version or commit>. Approval: <human + date +
+message/decision reference, or pending>. Save to `slice.md` or cite this exact section and
+revision at handoff. Other candidates are not authorized.*
 
-## Comparison
+> Within <appetite>, <user> can <useful end-to-end result>.
 
-| Slice | User value shipped | Appetite | Product risk tested | Good first bet? |
-| --- | --- | ---: | --- | --- |
-| <name> | <value> | <wk> | <risk> | **Yes** / later / conditional |
+- **Problem / value hypothesis** — <pain, why this outcome is useful, intended learning>.
+- **Appetite** — <human-approved investment limit and team/capacity; clock starts when;
+  elapsed vs working-time accounting; whether shaping/spikes count; includes verification>.
+- **Sources and constraints** — <relevant references from above, approved design constraints,
+  resolved conflicts; keep product intent and selected scope consistent>.
+- **Solution / user experience**
+  1. <user action → mechanism → observable result>
+  2. <…through a useful outcome>
+- **Included** — <bounded scope>.
+- **No-gos** — <excluded scope; no implied promise to do it later>.
+- **Permissible cuts** — <simplifications preserving the outcome, or none>.
+- **Protected requirements** — <essential quality, permissions, integrity, truthful claims>.
+- **Rabbit holes** — <traps and mitigation>.
 
-## Suggested sequence (options, not promises)
+### Experience visual: <selected ID>
 
-1. <first bet>
-2. <next, depending on observed user pain>
-3. …
+Copy the selected candidate's diagram here. Each serious candidate should have its own
+small flow when presenting options. The sample below uses only layers needed for A; replace
+it with the actual experience, including essential action boundaries and failure recovery.
 
-Only the next bet is shaped and chosen. [Place your bets](https://basecamp.com/shapeup/2.3-chapter-09)
+```mermaid
+flowchart LR
+  E["EXISTS · interaction<br/>Authenticated entry"] --> A["CANDIDATE A · logic<br/>Review proposed record"]
+  A --> Q{"CANDIDATE A<br/>User confirms?"}
+  Q -->|yes| S["CANDIDATE A · storage<br/>Save record"]
+  Q -->|no| R["CANDIDATE A<br/>Revise or cancel; no write"]
+  R -->|revise| A
+  S -->|success| O["CANDIDATE A · result<br/>Read saved status"]
+  S -->|failure| F["CANDIDATE A · recovery<br/>Explain failure; retry safely"]
+  F --> A
+  X["OUT · reminder delivery"]
+  style E fill:#eee,stroke:#444
+  style X fill:#fff,stroke:#666,stroke-dasharray:5 5
+```
 
-## Next step (your call)
+Text fallback: authenticated entry → review → confirm → save → visible saved status;
+cancel writes nothing; save failure is explained and can be retried. Reminders are out.
+Only label entry EXISTS if evidence supports it; otherwise include it in candidate scope.
+Use `UNKNOWN` labels/dashed paths for unresolved mechanisms. This diagram is the experience,
+not the story execution graph. Keep it consistent with design constraints and the table below.
 
-Pick a slice; ask me to shape it into a full pitch (one-sentence boundary + the five
-ingredients), then hand its Included/No-gos/appetite to **`squad-decompose`**. Keep
-`product.md` as the north-star contract — the slice is the current pitch, not a rewrite of it.
+### Mechanisms and readiness
+
+| Critical mechanism / requirement | Proposed approach | Evidence and limits | Unknown / disposition |
+| --- | --- | --- | --- |
+| <what must work> | <how, distinct from requirement> | <artifact/observation or none> | <ready / targeted spike / narrower scope> |
+
+**Ready to bet?** <Yes with rationale, or no: critical question to resolve before commitment>.
+Unknowns only in excluded future scope need not block this bet.
+[Risks](https://basecamp.com/shapeup/1.4-chapter-05)
+
+### Integrated outcome verification
+
+<One re-runnable end-to-end flow, observable success and essential failure cases, exact
+commands or manual steps, target environment and evidence path. Reuse story checks where
+possible; green stories alone do not establish this result. State what user observation
+will test the value hypothesis separately from functional verification.>
+
+### Stop / reshape decisions
+
+<Check remaining appetite before and after stories and when risks emerge. Use permitted
+cuts while they still fit. Record human-approved scope swaps with what leaves as well as
+what enters. Protect ACs and non-negotiables. At the limit stop, preserve code/evidence/open
+questions and a checkpoint; further investment requires a fresh bet. Record actual
+stop/reshape decisions here with date, reason and approval. No automatic extension.>
+[The circuit breaker](https://basecamp.com/shapeup/2.2-chapter-08)
+
+### Handoff
+
+<`squad-decompose` reads this selected pitch, persists its reference/revision, approval,
+appetite and integrated verification in `user-story.json`, and maps stories to its scope.
+The first story may be an internal walking skeleton; label its demo honestly. Human approval
+of the execution plan remains required. If finished early, inspect the outcome before
+choosing another bet.>

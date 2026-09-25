@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "slice": "01-a-promise-that-fits",
   "updated_at": "<ISO-8601, real date>",
   "current_stories": [],
@@ -11,18 +11,56 @@
       "finished_at": "<ISO-8601>",
       "squad": "backend-core (roles: staff-engineer, qa)",
       "outcome": "done | blocked | reverted",
-      "commits": ["<sha> <subject>"],
+      "commits": [
+        "<sha> <subject>"
+      ],
       "ac_results": [
-        { "id": "AC1", "result": "pass | fail", "evidence": "evidence/S01-01/<file>" }
+        {
+          "id": "AC1",
+          "result": "pass | fail",
+          "evidence": "evidence/S01-01/<file>"
+        }
       ],
       "external_actions_taken": [
-        { "kind": "disposable-db-reset", "target": "<resolved identity>", "approved_by": "auto | <human>" }
+        {
+          "kind": "disposable-db-reset",
+          "target": "<resolved identity>",
+          "approved_by": "auto | <human>"
+        }
       ],
-      "decisions": ["<choices a future squad must know about>"],
-      "deviations_from_plan": ["<what differed; an AC change is recorded here with the human's reason>"],
-      "pending_reviews": ["<role/check deferred by the execution mode, e.g. 'QA deferred — review pending'>"],
-      "follow_ups": ["<deferred work, with the story it belongs to>"],
+      "decisions": [
+        "<choices a future squad must know about>"
+      ],
+      "deviations_from_plan": [
+        "<what differed; an AC change is recorded here with the human's reason>"
+      ],
+      "pending_reviews": [
+        "<role/check deferred by the execution mode, e.g. 'QA deferred \u2014 review pending'>"
+      ],
+      "follow_ups": [
+        "<deferred work, with the story it belongs to>"
+      ],
       "context_for_next": "<= 10 lines: what exists now, which interfaces are stable, what the next squad should assume and NOT re-derive"
+    }
+  ],
+  "bet_checks": [
+    {
+      "at": "<ISO-8601, real date>",
+      "bet_id": "01-a-promise-that-fits",
+      "contract_revision": "<approved revision>",
+      "stage": "before-story",
+      "story_id": "S01-01",
+      "consumed": 0,
+      "remaining": 4,
+      "unit": "working-hours",
+      "measurement": "<example only: measured usage and source; never reset existing work to zero>",
+      "decision": "continue",
+      "reason": "<scope, readiness and remaining investment fit>",
+      "approval_ref": null,
+      "integrated_result": "not-run",
+      "evidence": [],
+      "checkpoint": null,
+      "external_actions_taken": []
     }
   ]
 }

@@ -19,7 +19,7 @@ every step optional.
 | --- | --- | --- |
 | **`derisk`** | a `product.md` or a pile of concerns | a Rumsfeld-matrix map + prioritized **candidate spikes** |
 | **`spike`** | a chosen candidate + rough scope | a concrete **`spike.md`**, grilled for the minimum viable decisions |
-| **`slice`** | a de-risked `product.md` | **candidate vertical slices** shaped by Shape Up + a recommended first bet |
+| **`slice`** | product intent, available design/evidence and appetite | **candidate vertical slices**, visual comparisons + a recommended first bet |
 | **`squad-decompose`** | a chosen slice / settled scope | a DAG of right-sized, verifiable **stories** (`user-story.json`), then a STOP |
 | **`squad-execute`** | an approved backlog | the stories built by a squad, each behind an **evidence gate**, logged to `progress.json` |
 
@@ -31,6 +31,14 @@ installed — that one is external, not bundled here.
 - **Spike what you don't know before you build it.** Known-unknowns become small,
   time-boxed, throwaway investigations with concrete options — not guesses baked into
   production code.
+- **A bet has a human-approved appetite.** Product vision, the selected release bet and its
+  implementation stories are distinct. Check investment before/after stories; stop and
+  preserve a checkpoint at the limit. No automatic extension or automatic next bet.
+- **Show the serving.** Slice candidates include portable Mermaid comparisons and experience
+  flows (text-only when requested). The selected pitch/visual is the scope contract; future
+  candidates stay uncommitted. Critical unknowns return to a spike or narrower scope.
+- **Verify the whole outcome.** Story checks remain independent; one integrated check confirms
+  that the selected user flow actually works. Shipping offers evidence about value.
 - **One story = one session.** Sized so a fresh squad can load context, build, verify,
   and commit in one window (≤ ~250k context, ≤ ~10 files, ≤ 7 ACs, one vertical concern).
 - **Context is pre-computed, not rediscovered.** `context.read_first` gives each squad an
@@ -94,7 +102,7 @@ skills/
 │   ├── SKILL.md
 │   ├── templates/spike.template.md
 │   └── examples/example-invocation.md
-├── slice/                        # de-risked product.md → Shape Up slice candidates
+├── slice/                        # intent + appetite + evidence → visual Shape Up candidates
 │   ├── SKILL.md
 │   ├── references/shape-up.md
 │   ├── templates/slice-candidates.template.md
@@ -106,6 +114,15 @@ skills/
     └── templates/{user-story,progress}.template.json
 AGENTS.md                         # Codex / harness-neutral entry point
 ```
+
+## State-file compatibility
+
+The plan and ledger now use `schema_version: 2`: `bet` persists the selected contract,
+approval, appetite/accounting and integrated verification; append-only `bet_checks` records
+execution boundaries and stops. See [migration instructions](skills/_shared/references/schemas.md#migration-from-version-1)
+before resuming a version-1 backlog. Preserve history and already consumed investment;
+never treat an old backlog as a fresh budget. These are agent instructions, not a runtime
+scheduler or hard resource-limit service.
 
 ## Pacing (`squad-execute`)
 

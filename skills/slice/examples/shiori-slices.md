@@ -1,103 +1,202 @@
 # Slice candidates (worked example): Shiori
 
-*Worked example for the `slice` skill. Product: **Shiori**, a Telegram assistant that helps
-a single owner keep commitments (capture → remind → follow through), with read-only Google
-Calendar and a minimal dashboard. The deployment + public-access unknowns were already
-de-risked with a spike, so the remaining risk is product behavior, not hosting — which is
-exactly when Shape Up says to shape a bet.*
+This is an illustrative shaping conversation, not a report of completed implementation or
+real production evidence. Shiori's vision is a Telegram assistant for capture, reminders
+and follow-through, eventually including Calendar and a dashboard. All choices and evidence
+below are **example assumptions** to show how to reason; a real pitch must cite actual files.
 
-## Is this one bet, or many?
+## Sources, appetite and learning
 
-`product.md` is a strong contract but bundles several independently risky systems: intent
-classification, commitment clarification, persistence/editing, recurring scheduling,
-reminder delivery, outcome handling, Calendar auth + matching, availability calculation,
-Telegram commands, a substantial dashboard, owner isolation, duplicate protection, and
-production evidence. That's a release vision, not one shaped pitch. Shape Up: appetite first,
-then vary scope; break off a *meaningful* piece, not a technical layer.
+Suppose the builder says: “I have four working hours this afternoon, including verification.
+I want to learn whether reviewing and saving a clear commitment is useful before adding
+reminders.” One builder with an agent is available. The clock starts when execution begins;
+earlier shaping is outside this example's allowance. That is the appetite to honor.
+
+| Example source | Role | What it supports / does not establish |
+| --- | --- | --- |
+| `PRODUCT.md` §capture | Product intent | Owner can inspect a clear commitment; the whole follow-through vision is larger than this bet |
+| Deployment spike report and smoke trace | Evidence, assumed for this example | A reachable Telegram entry and storage connection; no evidence of scheduling, delivery or duplicate protection |
+| Whiteboard capture flow, v1 | Proposal | Review before save; must be confirmed as the intended interaction |
+| Current code at inspected commit | Existing behavior, to verify | Only label reachable entry and storage connection EXISTS after inspection |
+| `DESIGN.md` | Absent in this scenario | Not a blocker by itself; record owner isolation and confirmation as explicit constraints |
+
+A hosting decision does not settle reminder semantics. If the product or an approved design
+requires reminders in this release, surface that conflict before selecting capture-only;
+do not quietly reinterpret the requirement.
 [Set boundaries](https://basecamp.com/shapeup/1.2-chapter-03)
 
----
+## Recommendation: A — Trusted Commitment Capture
 
-## Recommended first bet — "First Promise Kept"
+Choose A **if** the capture hypothesis is the intended learning and its critical checks below
+are supported. This is a deliberate useful bet: the owner can trust what was saved and find
+it again. It does not test whether reminders improve follow-through. If four hours cannot
+cover the protected behavior and verification, narrow further or stop; do not inflate the
+appetite to six weeks.
 
-> In one cycle, ship a production loop in which the configured owner explicitly creates and
-> confirms a one-off Telegram commitment, receives exactly one durable reminder, marks it
-> Done, and sees the same live state and event history on a protected minimal dashboard.
+B is an alternative when the builder instead wants to test the follow-through loop and
+explicitly approves a larger investment. Six weeks is one possible appetite, not an inferred
+default. C is only a possible later increment.
 
-- **Problem** — People express commitments but fail to follow through, because the intention
-  never becomes a concrete, timely loop.
-- **Appetite** — one big batch (~6-week cycle) — enough for real production verification, not
-  a happy-path demo.
-- **User experience**
-  1. Owner: "Remind me to send the proposal tomorrow at 9."
-  2. Shiori asks for any essential missing info, one question at a time.
-  3. Shiori shows exactly what it will save; owner confirms.
-  4. It appears in `/status` and a minimal dashboard.
-  5. At the time, Shiori sends **exactly one** reminder.
-  6. Owner replies **Done**; the dashboard reflects the completed occurrence + history.
-- **Included** — one configured owner; explicit one-off commitments; structured extraction;
-  missing-field clarification; confirm-before-save; Supabase persistence; `/status`;
-  restart-safe one-time scheduling; duplicate webhook/reminder protection; Done outcome; a
-  minimal protected dashboard (active commitments, definition of done, target time, reminder
-  delivery, Done); **live data only**; Railway deploy + end-to-end evidence.
-- **No-gos** — implied-intent classification; general Q&A; recurrence; snooze/skip; Google
-  Calendar; editing/cancelling; `/today`; dashboard analytics/free-windows/calendar; rich NL
-  beyond the shaped examples. For unsupported input Shiori is honest: "For now I can manage
-  explicit one-off reminders" — it must not pretend to support the full contract.
-- **Rabbit holes** — Telegram retries creating duplicate commitments; restart-safe
-  scheduling; associating "Done" with the right outstanding reminder; time-zone / relative
-  dates; model output that is structurally valid but semantically unsafe; a confirmation that
-  differs from what is stored.
-- **Why it fits Shape Up** — rough, solved, bounded, and it ends in a *meaningful result*: a
-  promise captured, recalled at the right time, and closed. Stop after this cycle and you
-  have a small but real Shiori, not disconnected foundations.
-  [Principles of shaping](https://basecamp.com/shapeup/1.1-chapter-02)
+```mermaid
+flowchart TB
+  subgraph choose["Alternatives for the next bet — no selection implied"]
+    A["A · Trusted Commitment Capture<br/>4 working hours, as supplied<br/>Confirm → save → visible status<br/>OUT: reminders, dashboard<br/>CONDITIONAL: owner/save/replay checks pending"]
+    B["B · First Promise Kept<br/>6 weeks only if explicitly approved<br/>Adds reminders → Done → protected dashboard<br/>NOT READY: critical mechanisms unresolved"]
+  end
+  subgraph future["Possible later increment — uncommitted"]
+    C["C · Recurring Rhythm<br/>Adds recurrence after suitable evidence<br/>No appetite or commitment yet"]
+  end
+  style A fill:#e8f1fb,stroke:#345
+  style B fill:#fff4da,stroke:#765
+  style C fill:#fff,stroke:#666,stroke-dasharray:5 5
+```
 
----
+Text fallback: A and B are mutually exclusive choices for the next investment. B adds
+reminder/completion/dashboard behavior and unresolved risk. C is outside both, uncommitted.
 
-## Other candidates (condensed)
+## A — experience and boundary
 
-### "Trusted Commitment Capture" — small batch (1–2 wk)
-Explicit one-off commitment → clarification → confirm → `/status` + minimal dashboard.
-**Why not first:** proves *capture*, not *follow-through* — risks feeling like a to-do list.
-A fine fallback if the true appetite is only two weeks.
+> In four working hours, let the configured owner review an explicit commitment, confirm
+> its storage and retrieve the same saved content in `/status`.
 
-### "Find Me a Real Time" — big batch
-Read-only Calendar availability → offer 1–2 slots → save the commitment. **Why not first:**
-front-loads Calendar auth, time-window policy, and availability logic before proving the
-basic loop is useful. Choose only if your strongest hypothesis is "calendar-aware timing,
-not reminder execution, is why people use Shiori."
+- **Included:** configured owner only; a constrained structured capture command; review and
+  confirmation; persistent save; visible `/status`; safe handling of duplicate confirmations;
+  honest errors. Required layers: Telegram interaction, validation/confirmation logic,
+  persistence and retrieval. No new dashboard layer is needed for this outcome.
+- **No-gos:** reminder delivery, inferred intent, arbitrary natural-language dates, Calendar,
+  recurrence, completion tracking, a web dashboard. Do not say “I'll remind you.”
+- **Permissible cuts:** use a plain status list instead of grouped formatting. Keep capture
+  structured instead of adding free-form parsing. These simplifications preserve the outcome.
+- **Protected:** owner isolation, no save without confirmation, stored content matches the
+  review, durable retrieval, no fake success on a failed write. These are not cuts.
 
-### "Daily Follow-Through Ritual", "Recurring Rhythm", "Reschedule Without Lying"
-Strong *later* bets — each depends on the one-off loop existing first (a read model with no
-real commitments, or recurrence/snooze edge cases on an unproven state machine).
+```mermaid
+flowchart TD
+  E["EXISTS · transport<br/>Reachable Telegram entry"] --> O{"UNKNOWN A · access check<br/>Configured owner?"}
+  O -->|no| X["CANDIDATE A · result<br/>Reject; expose no saved data"]
+  O -->|yes| I["CANDIDATE A · interaction<br/>Enter structured commitment"]
+  I --> V{"CANDIDATE A · logic<br/>Required fields valid?"}
+  V -->|no| R["CANDIDATE A · recovery<br/>Explain and request correction"]
+  R --> I
+  V -->|yes| P["CANDIDATE A · interaction<br/>Show exact proposed content"]
+  P --> Q{"CANDIDATE A · boundary<br/>Owner confirms?"}
+  Q -->|no| C["CANDIDATE A · result<br/>Cancel; nothing saved"]
+  Q -->|yes| S["UNKNOWN A · storage/replay mechanism<br/>Save confirmed content once per confirmation key"]
+  S -->|write fails| F["CANDIDATE A · recovery<br/>No success claim; safe retry"]
+  F --> P
+  S -->|saved or duplicate confirmation| T["CANDIDATE A · result<br/>Saved acknowledgement and matching /status"]
+  N["OUT · reminder delivery and dashboard"]
+  style O fill:#fff4da,stroke:#765,stroke-dasharray:5 5
+  style S fill:#fff4da,stroke:#765,stroke-dasharray:5 5
+  style E fill:#eee,stroke:#444
+  style N fill:#fff,stroke:#666,stroke-dasharray:5 5
+```
 
----
+Text fallback: entry → owner check → structured input → validation/correction → review →
+confirm → save → matching status. Cancellation does not write; a failed save allows safe
+retry; a duplicate confirmation returns the same record. Unauthorized callers see no data. Owner and save/replay mechanisms are labeled UNKNOWN
+until the readiness evidence below supports these proposed behaviors.
 
-## Comparison
+### A readiness check
 
-| Slice | User value shipped | Appetite | Product risk tested | Good first bet? |
-| --- | --- | ---: | --- | --- |
-| First Promise Kept | Full capture→completion loop | 6 wk | Highest-value core risks | **Yes** |
-| Trusted Commitment Capture | Clear, saved intentions | 1–2 wk | Conversation + persistence | Only with a small appetite |
-| Find Me a Real Time | Calendar-aware planning | 6 wk | Calendar + time selection | Conditional on hypothesis |
-| Daily Follow-Through Ritual | Unified daily view | 6 wk | Read model + daily usefulness | No — needs real commitments |
-| Recurring Rhythm | Repeated follow-through | 6 wk | Recurrence state machine | After the one-off loop |
-| Reschedule Without Lying | Honest recovery after interruption | 6 wk | Snooze + Calendar | Strong later bet |
+| Mechanism | Approach | Evidence needed / limit | Decision |
+| --- | --- | --- | --- |
+| Owner boundary | Check configured sender before reads/writes | Inspect an established access-check pattern or probe the sender-ID guard with owner/non-owner inputs; hosting alone does not establish it | Critical until supported |
+| Confirm → save → status | Persist the reviewed payload; `/status` reads it | Existing durable-storage behavior or a tiny write/restart/read probe establishes feasibility; the actual conversation is verified during execution | Critical until supported |
+| Replayed confirmation | Stable confirmation key + uniqueness enforced in storage | A small uniqueness/transaction probe or inspected proven implementation; validate that the key survives retries. Full command handling is built later | Critical until supported |
 
-## Suggested sequence (options, not promises)
+Readiness needs a credible mechanism with evidence proportionate to its risk, not the
+finished feature. An established pattern or tiny throwaway probe can answer these questions;
+there is no requirement to build A's entire conversation before selecting it. The UNKNOWN
+labels describe missing mechanism evidence in this example, not merely unimplemented code.
 
-1. First Promise Kept
-2. Recurring Rhythm *or* Find Me a Real Time (depending on observed user pain)
-3. Reschedule Without Lying to Yourself
-4. Daily Follow-Through Ritual
-5. Expand the dashboard only once the underlying live data exists
+A is a recommendation conditional on these checks, **not ready to commit merely because
+hosting worked**. Inspect available implementation evidence first. If save/retry behavior is
+unclear, run a targeted investigation or reshape; do not start the four-hour bet on a guess.
+Unknown future scheduling mechanisms do not block A because reminders are explicitly out.
 
-Only the next bet gets shaped and chosen; the rest stay options.
-[Place your bets](https://basecamp.com/shapeup/2.3-chapter-09)
+### A integrated verification and learning
 
-## Next step (your call)
+On the approved test target: an unauthorized sender cannot read or write; owner submits a
+structured commitment, corrects missing content, reviews and confirms, then sees identical
+saved content in `/status` after a restart. Repeat confirmation: one stored commitment.
+Cancel: no write. Inject write failure: no saved acknowledgement; retry safely succeeds.
+Save the transcript and storage assertions at `evidence/shiori-A/`. Decomposition resolves
+these steps to the actual test commands and target; no fictional runnable command is given.
+A live-target mutation still needs the existing external-action authorization.
 
-Pick a slice — if it's "First Promise Kept," hand its Included/No-gos/appetite to
-`squad-decompose` to break into stories. Keep `product.md` as the north-star contract and add
-this pitch as the first bet; don't let the pitch overwrite the contract.
+Functional success is distinct from learning: ask the owner to use capture/status for real
+commitments and observe whether they return to inspect them. This tests the value hypothesis;
+a green test suite alone does not establish usefulness.
+
+## B — First Promise Kept (conditional alternative)
+
+If the builder instead approves a six-week bet to investigate follow-through: explicit
+one-off capture → confirmation → save/status → reminder → Done → protected minimal dashboard.
+Keep A's access/confirmation/integrity requirements. Add persisted due work, recovery after
+restart, delivery-attempt tracking, explicit timezone policy, occurrence-bound Done actions
+and a dashboard reading the same state. Exclude recurrence, Calendar and snooze.
+A possible cut is a plain dashboard without event-history browsing, provided current state
+remains truthful. Permission, recovery behavior and truthful delivery status remain protected.
+
+```mermaid
+flowchart TD
+  E["EXISTS · transport/storage connection<br/>Hosting smoke test only"] --> A["CANDIDATE B · interaction and storage<br/>Owner check → review → confirm → saved status<br/>Same correction, cancel and retry paths as A"]
+  A -.-> S["UNKNOWN B · scheduling<br/>Persist due work and recover after restart"]
+  S -.-> D["UNKNOWN B · external action boundary<br/>Send reminder; record attempt and response"]
+  D -->|confirmed API response| R["CANDIDATE B · observable result<br/>Reminder available; record accepted response"]
+  D -.->|timeout or crash| U["UNKNOWN B · recovery<br/>Delivery may be ambiguous; bounded retry policy"]
+  U -.-> H["CANDIDATE B · observable result<br/>Expose uncertain delivery; no false success"]
+  R --> Q["CANDIDATE B · interaction<br/>Owner marks this occurrence Done"]
+  Q --> L["CANDIDATE B · storage and result<br/>Save completion; protected dashboard reflects it"]
+  Q -->|unknown occurrence| F["CANDIDATE B · recovery<br/>Ask owner to select; do not complete another item"]
+  N["OUT · Calendar, recurrence, snooze"]
+  style E fill:#eee,stroke:#444
+  style S fill:#fff4da,stroke:#765,stroke-dasharray:5 5
+  style D fill:#fff4da,stroke:#765,stroke-dasharray:5 5
+  style U fill:#fff4da,stroke:#765,stroke-dasharray:5 5
+  style N fill:#fff,stroke:#666,stroke-dasharray:5 5
+```
+
+Text fallback: B includes A's owner/confirm/save/status flow and failure paths, then adds a
+scheduler, external reminder attempt, occurrence-specific Done and protected live dashboard.
+Scheduling and ambiguous-send recovery are UNKNOWN. A confirmed API response is not proof
+that the owner read a message. Calendar, recurrence and snooze are excluded.
+
+### B readiness and delivery claims
+
+The hosting spike provides **no evidence** for restart-safe due work, timezone interpretation,
+concurrent-worker duplicate protection or delivery after a crash between send and record.
+Choose and test mechanisms before committing: a targeted spike should simulate restart,
+duplicate triggers, concurrent claims, timeout and that ambiguous send/record window. Decide
+whether bounded retries may duplicate a message or uncertain attempts require manual recovery,
+and communicate that policy. Do not promise exactly-once external delivery without evidence
+of a protocol that can provide it. Internal deduplication is a narrower, testable claim.
+
+The integrated check must cover capture through Done and matching dashboard state, including
+restart, duplicate triggers, ambiguous delivery status and wrong-occurrence recovery. Target
+and commands must come from the selected implementation. B is **not ready to bet** while
+these mechanisms are unresolved, regardless of its larger possible appetite.
+
+## Selecting and decomposing A
+
+If the human selects A after readiness is supported, save its boundary, source references,
+A diagram and evidence table as `slice.md`, ID `shiori-A`, revision `1`, with actual approval
+provenance. Preserve unresolved noncritical details honestly. Set `bet.appetite` to 4
+working-hours with the accounting above; copy A's integrated check into `bet.verification`.
+Do not copy B or C into the active story DAG.
+
+An initial story can demonstrate structured input → confirmation → saved status on a test
+target, labeled an **internal walking skeleton**. Later stories deepen failure handling and
+verification. Every story has independent QA; the integrated bet check still covers the
+full flow. If every story passes but `/status` reads stale data after restart, the bet has
+failed its outcome check. Add an in-scope fix only if it fits remaining appetite; otherwise
+stop. Do not change the durability requirement to make it pass.
+
+Before/after each story record consumed and remaining working time. At the limit, checkpoint
+unfinished code, evidence and questions; do not call that shipped or assume tomorrow is an
+extension. If reminders are requested mid-run, record a future candidate or an explicitly
+approved scope swap with its cuts and readiness rechecked. Finishing capture early means
+inspect the result and learning, then choose another bet deliberately.
+[The circuit breaker](https://basecamp.com/shapeup/2.2-chapter-08),
+[Integrated early pieces](https://basecamp.com/shapeup/3.2-chapter-11)

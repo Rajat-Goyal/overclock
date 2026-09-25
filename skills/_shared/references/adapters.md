@@ -4,6 +4,14 @@ The method, schemas, gate, and anti-drift rules are identical everywhere. Only t
 *mechanism* for running a squad differs. Detect the harness and use the matching
 adapter. Everything else (`schemas.md`, `conventions.md`) is shared.
 
+Both adapters enforce schema version 2's selected-bet contract. Before dispatch and after
+stories (including parallel completions), the lead appends `bet_checks` under one shared
+appetite/accounting rule. Serialize ledger writes; concurrent squads do not each get the
+whole remaining allowance. Pass the selected pitch and relevant visual/constraints in
+context. Halt dispatch and checkpoint active work when the limit is reached, including
+mid-story; use notifications or bounded work chunks as available, and disclose monitoring
+limits. An empty frontier is not bet completion: run independent `bet.verification` first.
+
 ---
 
 ## Claude Code → dynamic Workflows
